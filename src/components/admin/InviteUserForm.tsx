@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ActionButton from "@/components/ActionButton";
-import type { UserRole } from "@/lib/database.types";
+import type { Congregation, UserRole } from "@/lib/database.types";
 
-export default function InviteUserForm() {
+export default function InviteUserForm({ congregations }: { congregations: Congregation[] }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState<UserRole>("seller");
+  const [congregationId, setCongregationId] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
   async function handleInvite() {
@@ -17,7 +18,7 @@ export default function InviteUserForm() {
     const res = await fetch("/api/admin/invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, fullName, role }),
+      body: JSON.stringify({ email, fullName, role, congregationId: congregationId || null }),
     });
     const json = await res.json();
     if (!res.ok) {
@@ -26,6 +27,7 @@ export default function InviteUserForm() {
     }
     setEmail("");
     setFullName("");
+    setCongregationId("");
     router.refresh();
   }
 
@@ -58,6 +60,24 @@ export default function InviteUserForm() {
             {r === "seller" ? "Vendedor" : r === "treasurer" ? "Tesoureiro" : "Admin"}
           </button>
         ))}
+      </div>
+      <div>
+        <label htmlFor="invite-congregation" className="mb-1 block text-sm font-medium text-verde-profundo">
+          Congregação (opcional)
+        </label>
+        <select
+          id="invite-congregation"
+          value={congregationId}
+          onChange={(e) => setCongregationId(e.target.value)}
+          className="tap-target w-full rounded-xl border border-verde-oliva/30 bg-white px-4 py-3 outline-none focus:border-verde-profundo"
+        >
+          <option value="">Sem congregação</option>
+          {congregations.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
       </div>
       {error && <p className="text-sm font-medium text-terracota">{error}</p>}
       <ActionButton

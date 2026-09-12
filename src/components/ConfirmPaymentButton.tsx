@@ -10,13 +10,15 @@ import type { PaymentMethod } from "@/lib/database.types";
 export default function ConfirmPaymentButton({
   orderId,
   totalCents,
+  initialMethod,
 }: {
   orderId: string;
   totalCents: number;
+  initialMethod?: PaymentMethod | null;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [method, setMethod] = useState<PaymentMethod>("PIX");
+  const [method, setMethod] = useState<PaymentMethod>(initialMethod ?? "PIX");
   const [error, setError] = useState<string | null>(null);
 
   async function handleConfirm() {

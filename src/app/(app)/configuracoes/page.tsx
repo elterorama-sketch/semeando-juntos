@@ -7,7 +7,8 @@ import PrizesEditor from "@/components/admin/PrizesEditor";
 import InviteUserForm from "@/components/admin/InviteUserForm";
 import UsersList from "@/components/admin/UsersList";
 import NewCampaignForm from "@/components/admin/NewCampaignForm";
-import type { Campaign, CampaignPrize, Profile } from "@/lib/database.types";
+import CongregationsEditor from "@/components/admin/CongregationsEditor";
+import type { Campaign, CampaignPrize, Congregation, Profile } from "@/lib/database.types";
 
 export const dynamic = "force-dynamic";
 
@@ -23,9 +24,10 @@ export default async function ConfiguracoesPage() {
   }
 
   const supabase = await createClient();
-  const [{ data: campaigns }, { data: users }] = await Promise.all([
+  const [{ data: campaigns }, { data: users }, { data: congregations }] = await Promise.all([
     supabase.from("campaigns").select("*").order("created_at", { ascending: false }),
     supabase.from("profiles").select("*").order("full_name"),
+    supabase.from("congregations").select("*").order("name"),
   ]);
 
   const currentCampaign = (campaigns ?? [])[0] as Campaign | undefined;
@@ -56,8 +58,13 @@ export default async function ConfiguracoesPage() {
 
         <NewCampaignForm />
 
-        <InviteUserForm />
-        <UsersList users={(users ?? []) as Profile[]} />
+        <CongregationsEditor congregations={(congregations ?? []) as Congregation[]} />
+
+        <InviteUserForm congregations={(congregations ?? []) as Congregation[]} />
+        <UsersList
+          users={(users ?? []) as Profile[]}
+          congregations={(congregations ?? []) as Congregation[]}
+        />
       </main>
     </>
   );

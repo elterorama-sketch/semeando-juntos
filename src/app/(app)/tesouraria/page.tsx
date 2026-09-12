@@ -33,7 +33,9 @@ export default async function TesourariaPage() {
     supabase.from("campaign_numbers").select("status").eq("campaign_id", campaign.id),
     supabase
       .from("orders")
-      .select("id, total_cents, created_at, customer:customers(name), seller:profiles!orders_seller_id_fkey(full_name), campaign_numbers(number)")
+      .select(
+        "id, total_cents, created_at, intended_payment_method, customer:customers(name, congregation:congregations(name)), seller:profiles!orders_seller_id_fkey(full_name), campaign_numbers(number)"
+      )
       .eq("campaign_id", campaign.id)
       .in("status", ["RESERVADO", "AGUARDANDO_PAGAMENTO"])
       .order("created_at", { ascending: true }),
@@ -83,8 +85,20 @@ export default async function TesourariaPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-semibold text-verde-profundo">
-                      {(order as unknown as { customer: { name: string } | null }).customer?.name ?? "-"}
+                      {
+                        (order as unknown as { customer: { name: string; congregation: { name: string } | null } | null })
+                          .customer?.name ?? "-"
+                      }
                     </p>
+                    {(order as unknown as { customer: { congregation: { name: string } | null } | null }).customer
+                      ?.congregation && (
+                      <p className="text-xs text-verde-oliva/70">
+                        {
+                          (order as unknown as { customer: { congregation: { name: string } | null } | null })
+                            .customer!.congregation!.name
+                        }
+                      </p>
+                    )}
                     <p className="text-sm text-verde-oliva">
                       {(order as unknown as { campaign_numbers: { number: number }[] }).campaign_numbers
                         .map((n) => formatNumber(n.number))
@@ -97,7 +111,17 @@ export default async function TesourariaPage() {
                   </div>
                 </div>
                 <div className="mt-2">
-                  <ConfirmPaymentButton orderId={order.id} totalCents={order.total_cents} />
+                  <ConfirmPaymentButton
+                    orderId={order.id}
+                    totalCents={order.total_cents}
+                    initialMethod={
+                      (order as unknown as { intended_payment_method: string | null }).intended_payment_method as
+                        | "PIX"
+                        | "DINHEIRO"
+                        | "OUTRO"
+                        | null
+                    }
+                  />
                 </div>
               </div>
             ))}

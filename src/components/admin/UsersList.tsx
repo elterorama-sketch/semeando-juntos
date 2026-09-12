@@ -3,12 +3,19 @@
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import ActionButton from "@/components/ActionButton";
-import type { Profile } from "@/lib/database.types";
+import type { Congregation, Profile } from "@/lib/database.types";
 
 const ROLE_LABEL: Record<string, string> = { admin: "Admin", treasurer: "Tesoureiro", seller: "Vendedor" };
 
-export default function UsersList({ users }: { users: Profile[] }) {
+export default function UsersList({
+  users,
+  congregations = [],
+}: {
+  users: Profile[];
+  congregations?: Congregation[];
+}) {
   const router = useRouter();
+  const congregationName = (id: string | null) => congregations.find((c) => c.id === id)?.name;
 
   async function toggleActive(user: Profile) {
     const supabase = createClient();
@@ -27,7 +34,10 @@ export default function UsersList({ users }: { users: Profile[] }) {
         <div key={u.id} className="flex items-center justify-between rounded-lg bg-creme p-3">
           <div>
             <p className="font-medium text-verde-profundo">{u.full_name}</p>
-            <p className="text-xs text-verde-oliva">{ROLE_LABEL[u.role] ?? u.role}</p>
+            <p className="text-xs text-verde-oliva">
+              {ROLE_LABEL[u.role] ?? u.role}
+              {congregationName(u.congregation_id) ? ` · ${congregationName(u.congregation_id)}` : ""}
+            </p>
           </div>
           <div className="w-32">
             <ActionButton

@@ -28,6 +28,7 @@ export async function POST(request: Request) {
   const email = typeof body.email === "string" ? body.email.trim() : "";
   const fullName = typeof body.fullName === "string" ? body.fullName.trim() : "";
   const role = body.role as UserRole;
+  const congregationId = typeof body.congregationId === "string" ? body.congregationId : null;
 
   if (!email || !fullName || !["admin", "treasurer", "seller"].includes(role)) {
     return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
     full_name: fullName,
     role,
     active: true,
+    congregation_id: congregationId,
   });
   if (profileError) {
     return NextResponse.json({ error: profileError.message }, { status: 400 });

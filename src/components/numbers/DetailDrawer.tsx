@@ -12,7 +12,13 @@ interface OrderDetail {
   total_cents: number;
   note: string | null;
   expires_at: string | null;
-  customer: { id: string; name: string; whatsapp: string | null } | null;
+  intended_payment_method: PaymentMethod | null;
+  customer: {
+    id: string;
+    name: string;
+    whatsapp: string | null;
+    congregation: { name: string } | null;
+  } | null;
   seller: { full_name: string } | null;
   payments: { amount_cents: number; method: PaymentMethod; confirmed_at: string }[];
 }
@@ -48,7 +54,7 @@ export default function DetailDrawer({
       const { data } = await supabase
         .from("campaign_numbers")
         .select(
-          "order:orders(id, status, total_cents, note, expires_at, customer:customers(id, name, whatsapp), seller:profiles!orders_seller_id_fkey(full_name), payments(amount_cents, method, confirmed_at))"
+          "order:orders(id, status, total_cents, note, expires_at, intended_payment_method, customer:customers(id, name, whatsapp, congregation:congregations(name)), seller:profiles!orders_seller_id_fkey(full_name), payments(amount_cents, method, confirmed_at))"
         )
         .eq("id", numberId)
         .single();
@@ -111,6 +117,9 @@ export default function DetailDrawer({
               {order.customer?.whatsapp && (
                 <p className="text-sm text-verde-oliva">{order.customer.whatsapp}</p>
               )}
+              {order.customer?.congregation && (
+                <p className="text-sm text-verde-oliva">{order.customer.congregation.name}</p>
+              )}
               {order.seller && (
                 <p className="mt-1 text-sm text-verde-oliva">Vendedor: {order.seller.full_name}</p>
               )}
@@ -124,6 +133,12 @@ export default function DetailDrawer({
 
             {order.expires_at && status === "RESERVADO" && (
               <p className="text-xs text-verde-oliva">Expira em {formatDateTime(order.expires_at)}</p>
+            )}
+
+            {order.intended_payment_method && status !== "PAGO" && (
+              <p className="text-xs text-verde-oliva">
+                Forma prevista: {order.intended_payment_method}
+              </p>
             )}
 
             {order.payments?.length > 0 && (
@@ -167,6 +182,7 @@ export default function DetailDrawer({
             customerName={order.customer.name}
             numbers={[numberValue]}
             totalCents={order.total_cents}
+            initialMethod={order.intended_payment_method}
             onClose={() => setShowPayment(false)}
             onConfirmed={() => {
               setShowPayment(false);
@@ -190,6 +206,7 @@ function PaymentModal({
   customerName,
   numbers,
   totalCents,
+  initialMethod,
   onClose,
   onConfirmed,
 }: {
@@ -197,10 +214,11 @@ function PaymentModal({
   customerName: string;
   numbers: number[];
   totalCents: number;
+  initialMethod?: PaymentMethod | null;
   onClose: () => void;
   onConfirmed: () => void;
 }) {
-  const [method, setMethod] = useState<PaymentMethod>("PIX");
+  const [method, setMethod] = useState<PaymentMethod>(initialMethod ?? "PIX");
   const [error, setError] = useState<string | null>(null);
 
   async function handleConfirm() {

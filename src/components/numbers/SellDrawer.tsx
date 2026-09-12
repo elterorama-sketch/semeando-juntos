@@ -4,25 +4,36 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatCentsBRL, formatNumber } from "@/lib/format";
 import ActionButton from "@/components/ActionButton";
+import type { Congregation, PaymentMethod } from "@/lib/database.types";
 
 interface SellDrawerProps {
   campaignId: string;
   priceCents: number;
   numbers: number[];
+  congregations: Congregation[];
   onClose: () => void;
   onSold: (result: { numbers: number[]; customerName: string; totalCents: number }) => void;
 }
+
+const PAYMENT_OPTIONS: { value: PaymentMethod; label: string }[] = [
+  { value: "PIX", label: "PIX" },
+  { value: "DINHEIRO", label: "Dinheiro" },
+  { value: "OUTRO", label: "Outro" },
+];
 
 export default function SellDrawer({
   campaignId,
   priceCents,
   numbers,
+  congregations,
   onClose,
   onSold,
 }: SellDrawerProps) {
   const [name, setName] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [note, setNote] = useState("");
+  const [congregationId, setCongregationId] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("PIX");
   const [error, setError] = useState<string | null>(null);
 
   const totalCents = priceCents * numbers.length;
@@ -41,6 +52,8 @@ export default function SellDrawer({
       p_customer_name: name.trim(),
       p_customer_whatsapp: whatsapp.trim() || null,
       p_note: note.trim() || null,
+      p_congregation_id: congregationId || null,
+      p_payment_method: paymentMethod,
     });
 
     if (rpcError) {
@@ -107,6 +120,48 @@ export default function SellDrawer({
               className="tap-target w-full rounded-xl border border-verde-oliva/30 bg-white px-4 py-3 outline-none focus:border-verde-profundo focus:ring-2 focus:ring-verde-profundo/20"
             />
           </div>
+
+          {congregations.length > 0 && (
+            <div>
+              <label htmlFor="customer-congregation" className="mb-1 block text-sm font-medium text-verde-profundo">
+                Congregação
+              </label>
+              <select
+                id="customer-congregation"
+                value={congregationId}
+                onChange={(e) => setCongregationId(e.target.value)}
+                className="tap-target w-full rounded-xl border border-verde-oliva/30 bg-white px-4 py-3 outline-none focus:border-verde-profundo focus:ring-2 focus:ring-verde-profundo/20"
+              >
+                <option value="">Não informado</option>
+                {congregations.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div>
+            <p className="mb-1 text-sm font-medium text-verde-profundo">Forma de pagamento prevista</p>
+            <div className="flex gap-2">
+              {PAYMENT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setPaymentMethod(opt.value)}
+                  className={`tap-target flex-1 rounded-xl py-2 text-sm font-semibold ${
+                    paymentMethod === opt.value
+                      ? "bg-verde-profundo text-off-white"
+                      : "bg-creme text-verde-profundo"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <label htmlFor="note" className="mb-1 block text-sm font-medium text-verde-profundo">
               Observação

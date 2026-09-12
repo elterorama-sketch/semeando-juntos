@@ -13,12 +13,19 @@ export type NumberStatus =
 export type OrderStatus = "RESERVADO" | "AGUARDANDO_PAGAMENTO" | "PAGO" | "CANCELADO";
 export type PaymentMethod = "PIX" | "DINHEIRO" | "OUTRO";
 
+export interface Congregation {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
 export interface Profile {
   id: string;
   full_name: string;
   phone: string | null;
   role: UserRole;
   active: boolean;
+  congregation_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -51,6 +58,7 @@ export interface Customer {
   id: string;
   name: string;
   whatsapp: string | null;
+  congregation_id: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -64,6 +72,7 @@ export interface Order {
   status: OrderStatus;
   total_cents: number;
   note: string | null;
+  intended_payment_method: PaymentMethod | null;
   reserved_at: string;
   expires_at: string | null;
   created_at: string;
@@ -166,6 +175,7 @@ interface TableDef<Row, Insert = Partial<Row>, Update = Partial<Row>> {
 export interface Database {
   public: {
     Tables: {
+      congregations: TableDef<Congregation>;
       profiles: TableDef<Profile>;
       campaigns: TableDef<Campaign>;
       campaign_prizes: TableDef<CampaignPrize>;
@@ -187,6 +197,8 @@ export interface Database {
           p_customer_name: string;
           p_customer_whatsapp?: string | null;
           p_note?: string | null;
+          p_congregation_id?: string | null;
+          p_payment_method?: PaymentMethod | null;
         };
         Returns: ReserveNumbersResult[];
       };

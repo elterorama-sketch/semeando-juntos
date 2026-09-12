@@ -8,7 +8,7 @@ import { statusConfig } from "@/components/StatusBadge";
 import SellDrawer from "@/components/numbers/SellDrawer";
 import DetailDrawer from "@/components/numbers/DetailDrawer";
 import ReceiptCard from "@/components/ReceiptCard";
-import type { Campaign, CampaignNumber, NumberStatus, Profile } from "@/lib/database.types";
+import type { Campaign, CampaignNumber, Congregation, NumberStatus, Profile } from "@/lib/database.types";
 
 type GridNumber = Pick<
   CampaignNumber,
@@ -28,11 +28,13 @@ export default function NumbersScreen({
   profile,
   initialNumbers,
   profiles,
+  congregations,
 }: {
   campaign: Campaign;
   profile: Profile;
   initialNumbers: GridNumber[];
   profiles: { id: string; full_name: string; role: string }[];
+  congregations: Congregation[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -339,6 +341,7 @@ export default function NumbersScreen({
           campaignId={campaign.id}
           priceCents={campaign.price_cents}
           numbers={sellNumbers}
+          congregations={congregations}
           onClose={() => setSellNumbers(null)}
           onSold={(result) => {
             setSellNumbers(null);

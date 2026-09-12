@@ -19,13 +19,14 @@ export default async function NumerosPage() {
   }
 
   const supabase = await createClient();
-  const [{ data: numbers }, { data: profiles }] = await Promise.all([
+  const [{ data: numbers }, { data: profiles }, { data: congregations }] = await Promise.all([
     supabase
       .from("campaign_numbers")
       .select("id, number, status, order_id, reserved_by, expires_at")
       .eq("campaign_id", campaign.id)
       .order("number", { ascending: true }),
     supabase.from("profiles").select("id, full_name, role"),
+    supabase.from("congregations").select("*").order("name"),
   ]);
 
   return (
@@ -36,6 +37,7 @@ export default async function NumerosPage() {
         profile={profile}
         initialNumbers={numbers ?? []}
         profiles={profiles ?? []}
+        congregations={congregations ?? []}
       />
     </>
   );

@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 interface CustomerGroup {
   name: string;
   whatsapp: string | null;
+  congregation: string | null;
   numbers: number[];
   totalCents: number;
   status: NumberStatus;
@@ -31,7 +32,9 @@ export default async function CompradoresPage() {
   const supabase = await createClient();
   const { data: orders } = await supabase
     .from("orders")
-    .select("total_cents, status, customer:customers(name, whatsapp), campaign_numbers(number)")
+    .select(
+      "total_cents, status, customer:customers(name, whatsapp, congregation:congregations(name)), campaign_numbers(number)"
+    )
     .eq("campaign_id", campaign.id)
     .neq("status", "CANCELADO")
     .order("created_at", { ascending: false });
@@ -41,7 +44,11 @@ export default async function CompradoresPage() {
     const row = o as unknown as {
       total_cents: number;
       status: NumberStatus;
-      customer: { name: string; whatsapp: string | null } | null;
+      customer: {
+        name: string;
+        whatsapp: string | null;
+        congregation: { name: string } | null;
+      } | null;
       campaign_numbers: { number: number }[];
     };
     if (!row.customer) return;
@@ -49,6 +56,7 @@ export default async function CompradoresPage() {
     const entry = byCustomer.get(key) ?? {
       name: row.customer.name,
       whatsapp: row.customer.whatsapp,
+      congregation: row.customer.congregation?.name ?? null,
       numbers: [],
       totalCents: 0,
       status: row.status,
@@ -73,6 +81,9 @@ export default async function CompradoresPage() {
               <div>
                 <p className="font-semibold text-verde-profundo">{c.name}</p>
                 {c.whatsapp && <p className="text-sm text-verde-oliva">{c.whatsapp}</p>}
+                {c.congregation && (
+                  <p className="text-xs text-verde-oliva/70">{c.congregation}</p>
+                )}
                 <p className="mt-1 text-sm text-verde-oliva">
                   {c.numbers.length} número{c.numbers.length > 1 ? "s" : ""} ·{" "}
                   {c.numbers.map((n) => formatNumber(n)).join(" • ")}
