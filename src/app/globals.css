@@ -16,6 +16,47 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Every button needs to feel like it registered the tap the instant a
+   finger touches it. Two problems combined to make taps feel dead:
+   `-webkit-tap-highlight-color: transparent` above kills the browser's
+   built-in flash, and most buttons here only style `hover:`, which never
+   fires on a touchscreen -- so nothing visible happened until (or unless)
+   the click handler's state update landed. This rule gives instant
+   press feedback on every button/link/tap-target regardless of hover
+   support, and `touch-action: manipulation` removes the ~300ms delay
+   some mobile browsers impose while waiting to see if a tap is really a
+   double-tap-to-zoom. */
+button,
+a,
+.tap-target,
+[role="button"] {
+  touch-action: manipulation;
+  transition: transform 100ms ease-out, opacity 100ms ease-out, filter 100ms ease-out;
+}
+
+button:active,
+a:active,
+.tap-target:active,
+[role="button"]:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  a,
+  .tap-target,
+  [role="button"] {
+    transition: opacity 100ms ease-out;
+  }
+  button:active,
+  a:active,
+  .tap-target:active,
+  [role="button"]:active {
+    transform: none;
+  }
+}
+
 .tap-target {
   min-height: 44px;
   min-width: 44px;
