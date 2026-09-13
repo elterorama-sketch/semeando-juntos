@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatCentsBRL, formatNumber } from "@/lib/format";
 import ActionButton from "@/components/ActionButton";
-import { PIX_COPIA_COLA } from "@/lib/pix";
+import { PIX_COPIA_COLA, PIX_PAYMENT_LINK } from "@/lib/pix";
 import type { Congregation, PaymentMethod } from "@/lib/database.types";
 
 interface SellDrawerProps {
@@ -391,6 +391,24 @@ export default function SellDrawer({
                   className="tap-target mt-2 w-full rounded-xl bg-verde-profundo py-2 text-sm font-semibold uppercase tracking-wide text-off-white"
                 >
                   {pixCopied ? "Código copiado ✓" : "Copiar código Pix"}
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (navigator.share) {
+                      try {
+                        await navigator.share({ url: PIX_PAYMENT_LINK, title: "Pagamento Pix" });
+                        return;
+                      } catch {
+                        // user cancelled the share sheet
+                      }
+                    } else {
+                      navigator.clipboard.writeText(PIX_PAYMENT_LINK);
+                    }
+                  }}
+                  className="tap-target mt-2 w-full rounded-xl bg-creme py-2 text-sm font-semibold uppercase tracking-wide text-verde-profundo"
+                >
+                  Compartilhar link de pagamento
                 </button>
                 <p className="mt-2 text-xs text-verde-oliva">
                   O valor não vem preenchido no código -- confirme que o comprador digitou{" "}
