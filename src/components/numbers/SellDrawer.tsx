@@ -201,32 +201,6 @@ export default function SellDrawer({
           </button>
         </div>
 
-        <div className="mb-4 flex rounded-xl bg-creme p-1">
-          <button
-            type="button"
-            onClick={() => setMode("reservar")}
-            className={`tap-target flex-1 rounded-lg py-2 text-sm font-semibold ${
-              mode === "reservar" ? "bg-verde-profundo text-off-white" : "text-verde-profundo"
-            }`}
-          >
-            Reservar
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("vender")}
-            className={`tap-target flex-1 rounded-lg py-2 text-sm font-semibold ${
-              mode === "vender" ? "bg-verde-profundo text-off-white" : "text-verde-profundo"
-            }`}
-          >
-            Vender agora
-          </button>
-        </div>
-        <p className="mb-4 text-xs text-verde-oliva">
-          {mode === "reservar"
-            ? "Segura o número para o comprador; a forma de pagamento fica em aberto até confirmar depois."
-            : "Já registra a forma de pagamento prevista agora."}
-        </p>
-
         <div
           className={`mb-4 rounded-xl p-3 text-center ${shortfall > 0 ? "bg-terracota/10" : "bg-creme"}`}
         >
@@ -306,57 +280,6 @@ export default function SellDrawer({
             </div>
           )}
 
-          {mode === "vender" && (
-            <div>
-              <p className="mb-1 text-sm font-medium text-verde-profundo">Forma de pagamento</p>
-              <div className="flex gap-2">
-                {PAYMENT_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setPaymentMethod(opt.value)}
-                    className={`tap-target flex-1 rounded-xl py-2 text-sm font-semibold ${
-                      paymentMethod === opt.value
-                        ? "bg-verde-profundo text-off-white"
-                        : "bg-creme text-verde-profundo"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-
-              {isCash && (
-                <div className="mt-3 rounded-xl bg-creme p-3">
-                  <label htmlFor="received" className="mb-1 block text-sm font-medium text-verde-profundo">
-                    Valor recebido (R$)
-                  </label>
-                  <input
-                    id="received"
-                    value={receivedReais}
-                    onChange={(e) => setReceivedReais(e.target.value)}
-                    inputMode="decimal"
-                    placeholder={(totalCents / 100).toFixed(2)}
-                    className="tap-target w-full rounded-xl border border-verde-oliva/30 bg-white px-4 py-3 text-center text-lg font-bold outline-none focus:border-verde-profundo"
-                  />
-                  {receivedReais.trim() !== "" && (
-                    <p
-                      className={`mt-2 text-center text-sm font-semibold ${
-                        changeCents !== null && changeCents < 0 ? "text-terracota" : "text-verde-profundo"
-                      }`}
-                    >
-                      {changeCents === null
-                        ? ""
-                        : changeCents < 0
-                          ? `Faltam ${formatCentsBRL(-changeCents)}`
-                          : `Troco: ${formatCentsBRL(changeCents)}`}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
           <div>
             <label htmlFor="note" className="mb-1 block text-sm font-medium text-verde-profundo">
               Observação
@@ -370,13 +293,90 @@ export default function SellDrawer({
           </div>
         </div>
 
+        <div className="mt-5 flex rounded-xl bg-creme p-1">
+          <button
+            type="button"
+            onClick={() => setMode("reservar")}
+            className={`tap-target flex-1 rounded-lg py-2 text-sm font-semibold ${
+              mode === "reservar" ? "bg-verde-profundo text-off-white" : "text-verde-profundo"
+            }`}
+          >
+            Reservar
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("vender")}
+            className={`tap-target flex-1 rounded-lg py-2 text-sm font-semibold ${
+              mode === "vender" ? "bg-verde-profundo text-off-white" : "text-verde-profundo"
+            }`}
+          >
+            Vender agora
+          </button>
+        </div>
+        <p className="mb-4 mt-2 text-xs text-verde-oliva">
+          {mode === "reservar"
+            ? "Segura o número para o comprador; a forma de pagamento fica em aberto até confirmar depois."
+            : "Já registra a forma de pagamento prevista agora."}
+        </p>
+
+        {mode === "vender" && (
+          <div className="mb-4">
+            <p className="mb-1 text-sm font-medium text-verde-profundo">Forma de pagamento</p>
+            <div className="flex gap-2">
+              {PAYMENT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setPaymentMethod(opt.value)}
+                  className={`tap-target flex-1 rounded-xl py-2 text-sm font-semibold ${
+                    paymentMethod === opt.value
+                      ? "bg-verde-profundo text-off-white"
+                      : "bg-creme text-verde-profundo"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {isCash && (
+              <div className="mt-3 rounded-xl bg-creme p-3">
+                <label htmlFor="received" className="mb-1 block text-sm font-medium text-verde-profundo">
+                  Valor recebido (R$)
+                </label>
+                <input
+                  id="received"
+                  value={receivedReais}
+                  onChange={(e) => setReceivedReais(e.target.value)}
+                  inputMode="decimal"
+                  placeholder={(totalCents / 100).toFixed(2)}
+                  className="tap-target w-full rounded-xl border border-verde-oliva/30 bg-white px-4 py-3 text-center text-lg font-bold outline-none focus:border-verde-profundo"
+                />
+                {receivedReais.trim() !== "" && (
+                  <p
+                    className={`mt-2 text-center text-sm font-semibold ${
+                      changeCents !== null && changeCents < 0 ? "text-terracota" : "text-verde-profundo"
+                    }`}
+                  >
+                    {changeCents === null
+                      ? ""
+                      : changeCents < 0
+                        ? `Faltam ${formatCentsBRL(-changeCents)}`
+                        : `Troco: ${formatCentsBRL(changeCents)}`}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {error && (
-          <p role="alert" className="mt-3 text-sm font-medium text-terracota">
+          <p role="alert" className="mb-4 text-sm font-medium text-terracota">
             {error}
           </p>
         )}
 
-        <div className="mt-5">
+        <div>
           <ActionButton
             label={actionLabel}
             labelDoing={mode === "reservar" ? "Reservando..." : "Vendendo..."}
