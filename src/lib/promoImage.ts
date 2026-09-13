@@ -140,7 +140,7 @@ export async function generatePromoImage(data: PromoImageData): Promise<Blob> {
   ctx.fillText(
     hasPromo
       ? `Compre ${data.promoBuyQuantity} ganhe ${data.promoFreeQuantity}!`
-      : "Ajude e concorra a prêmios!",
+      : "Colabore e concorra a prêmios!",
     centerX,
     y
   );
@@ -253,7 +253,7 @@ export async function generatePromoImage(data: PromoImageData): Promise<Blob> {
   let congY = y + 42;
   ctx.fillStyle = COLORS.creme;
   ctx.font = "700 26px system-ui, sans-serif";
-  ctx.fillText("⛪ Toda a arrecadação é para o:", centerX, congY);
+  ctx.fillText("⛪ Colabore com o:", centerX, congY);
   congY += 36;
 
   ctx.fillStyle = COLORS.offWhite;

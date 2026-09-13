@@ -55,7 +55,7 @@ export const PROMO_TEMPLATES: ((ctx: PromoTemplateContext) => string)[] = [
       ...prizesLines(ctx),
       drawLine(ctx),
       "",
-      "Toda a arrecadação desta campanha é para o:",
+      "🙏 Colabore com o:",
       ...congressBlock(),
       "",
       ...leadersBlock(ctx, "📲 Compre ou reserve seu número direto pelo WhatsApp:"),
@@ -69,7 +69,7 @@ export const PROMO_TEMPLATES: ((ctx: PromoTemplateContext) => string)[] = [
         (promoLine(ctx) ? `, ${promoLine(ctx)}` : "."),
       ...prizesLines(ctx).slice(0, 2),
       "",
-      "Toda a renda desta campanha é para o:",
+      "Colabore com o:",
       ...congressBlock(),
       "",
       "Chama um cooperador no WhatsApp agora e não fica de fora! 🙏",
@@ -80,8 +80,8 @@ export const PROMO_TEMPLATES: ((ctx: PromoTemplateContext) => string)[] = [
   (ctx) =>
     join([
       "Juntos somos mais fortes! 🌱",
-      `A campanha ${ctx.campaignName} ajuda a igreja e ainda te dá a chance de concorrer a prêmios.`,
-      "Cada número é uma semente — e a colheita é toda para o:",
+      `A campanha ${ctx.campaignName} também te dá a chance de concorrer a prêmios.`,
+      "Cada número é uma semente — colabore com o:",
       ...congressBlock(),
       VAROES_CONGRESS.verse,
       "",
@@ -96,7 +96,7 @@ export const PROMO_TEMPLATES: ((ctx: PromoTemplateContext) => string)[] = [
       ...prizesLines(ctx),
       drawLine(ctx),
       "",
-      `E o melhor: a arrecadação é toda para o ${VAROES_CONGRESS.title.split("—")[0].trim()}`,
+      `E o melhor: você colabora com o ${VAROES_CONGRESS.title.split("—")[0].trim()}`,
       `(${VAROES_CONGRESS.dates}, ${VAROES_CONGRESS.location.split("—")[1]?.trim() ?? VAROES_CONGRESS.location}).`,
       "",
       ...leadersBlock(ctx, "📲 Garanta os seus com um cooperador:"),
@@ -109,7 +109,7 @@ export const PROMO_TEMPLATES: ((ctx: PromoTemplateContext) => string)[] = [
       `${formatCentsBRL(ctx.priceCents)} cada` + (promoLine(ctx) ? `, ${promoLine(ctx)}` : "."),
       ...prizesLines(ctx).slice(0, 2),
       "",
-      `A arrecadação desta campanha é para o ${VAROES_CONGRESS.title.split("—")[0].trim()}, dias ${VAROES_CONGRESS.dates}.`,
+      `Colabore com o ${VAROES_CONGRESS.title.split("—")[0].trim()}, dias ${VAROES_CONGRESS.dates}.`,
       "",
       ...leadersBlock(ctx, "Fala com um cooperador e participa também! 📲"),
     ]),
@@ -121,20 +121,20 @@ export const PROMO_TEMPLATES: ((ctx: PromoTemplateContext) => string)[] = [
       ...prizesLines(ctx),
       `Número por ${formatCentsBRL(ctx.priceCents)}` + (promoLine(ctx) ? `, ${promoLine(ctx)}` : "."),
       "",
-      `Não perde essa — a arrecadação é para o ${VAROES_CONGRESS.title.split("—")[0].trim()} (${VAROES_CONGRESS.dates}).`,
+      `Não perde essa — colabore com o ${VAROES_CONGRESS.title.split("—")[0].trim()} (${VAROES_CONGRESS.dates}).`,
       "",
       ...leadersBlock(ctx, "Fala com um cooperador pelo WhatsApp hoje mesmo! 📲"),
     ]),
 
-  // 7. Foco em ajudar a igreja/campo
+  // 7. Foco no Congresso/campo
   (ctx) =>
     join([
-      "Cada número comprado ajuda a nossa igreja a crescer. 🙌",
+      "Cada número comprado é uma colaboração! 🙌",
       `Campanha ${ctx.campaignName}: ${formatCentsBRL(ctx.priceCents)} o número` +
         (promoLine(ctx) ? `, ${promoLine(ctx)}` : "."),
       ...prizesLines(ctx).slice(0, 2),
       "",
-      `A renda desta campanha é toda para o ${VAROES_CONGRESS.title.split("—")[0].trim()}`,
+      `Colabore com o ${VAROES_CONGRESS.title.split("—")[0].trim()}`,
       `— tema "${VAROES_CONGRESS.theme}", ${VAROES_CONGRESS.dates}.`,
       "",
       ...leadersBlock(ctx, "👉 Procure um cooperador e faça parte dessa semeadura:"),
@@ -146,7 +146,7 @@ export const PROMO_TEMPLATES: ((ctx: PromoTemplateContext) => string)[] = [
       `🌱 ${ctx.campaignName}`,
       `${formatCentsBRL(ctx.priceCents)} o número` + (promoLine(ctx) ? ` | ${promoLine(ctx)}` : ""),
       ctx.prizes.length > 0 ? `${ctx.prizes.length} prêmio(s) em jogo 🎁` : null,
-      `Arrecadação para o Congresso de Varões (${VAROES_CONGRESS.dates}) ⛪`,
+      `Colabore com o Congresso de Varões (${VAROES_CONGRESS.dates}) ⛪`,
       drawLine(ctx),
       "Chama um cooperador! 📲",
     ]),
@@ -159,7 +159,7 @@ export const PROMO_TEMPLATES: ((ctx: PromoTemplateContext) => string)[] = [
       `Número por ${formatCentsBRL(ctx.priceCents)}` + (promoLine(ctx) ? ` (${promoLine(ctx)})` : "."),
       drawLine(ctx),
       "",
-      `E toda a arrecadação é para o ${VAROES_CONGRESS.title.split("—")[0].trim()}!`,
+      `E você colabora com o ${VAROES_CONGRESS.title.split("—")[0].trim()}!`,
       "",
       ...leadersBlock(ctx, "Garanta o seu com um cooperador! 📲"),
     ]),
@@ -169,7 +169,7 @@ export const PROMO_TEMPLATES: ((ctx: PromoTemplateContext) => string)[] = [
     join([
       `Oi! Passando pra te convidar a participar da campanha ${ctx.campaignName}. 🌱`,
       `É simples: ${formatCentsBRL(ctx.priceCents)} por número` + (promoLine(ctx) ? `, ${promoLine(ctx)}` : "."),
-      "Toda a arrecadação desta campanha é para o:",
+      "Colabore com o:",
       ...congressBlock(),
       "",
       ctx.leaders.length > 0
