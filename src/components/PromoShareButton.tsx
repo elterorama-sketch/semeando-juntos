@@ -136,8 +136,8 @@ function PromoPreview({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 md:items-center">
-      <div className="w-full max-w-sm rounded-t-2xl bg-off-white p-5 md:rounded-2xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/40 md:items-center">
+      <div className="my-auto max-h-[92vh] w-full max-w-sm overflow-y-auto rounded-t-2xl bg-off-white p-5 md:rounded-2xl">
         <div className="overflow-hidden rounded-2xl bg-verde-profundo shadow-lg">
           {previewUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -149,7 +149,7 @@ function PromoPreview({
           )}
         </div>
 
-        <div className="mt-4 max-h-40 overflow-y-auto whitespace-pre-line rounded-xl bg-creme p-3 text-xs text-verde-profundo">
+        <div className="mt-4 whitespace-pre-line rounded-xl bg-creme p-3 text-xs text-verde-profundo">
           {shareText}
         </div>
 
