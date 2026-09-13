@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { formatCentsBRL, formatDate } from "@/lib/format";
 import { generatePromoImage } from "@/lib/promoImage";
+import { formatPhoneBR, waLink, type CampaignLeader } from "@/lib/campaignLeaders";
 
 interface PromoShareButtonProps {
   campaignName: string;
@@ -11,6 +12,7 @@ interface PromoShareButtonProps {
   prizes: { position: number; title: string }[];
   promoBuyQuantity: number | null;
   promoFreeQuantity: number | null;
+  leaders: CampaignLeader[];
 }
 
 export default function PromoShareButton(props: PromoShareButtonProps) {
@@ -37,6 +39,7 @@ function PromoPreview({
   prizes,
   promoBuyQuantity,
   promoFreeQuantity,
+  leaders,
   onClose,
 }: PromoShareButtonProps & { onClose: () => void }) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -54,7 +57,10 @@ function PromoPreview({
     ...prizes.slice(0, 4).map((p) => `🎁 ${p.position}º prêmio: ${p.title}`),
     drawDate ? `\n📅 Sorteio em ${formatDate(drawDate)}` : null,
     "",
-    "👉 Procure um cooperador da sua congregação e garanta já seus números pelo WhatsApp!",
+    leaders.length > 0
+      ? "📲 Compre ou reserve seu número direto pelo WhatsApp com um cooperador:"
+      : "👉 Procure um cooperador da sua congregação e garanta já seus números!",
+    ...leaders.map((l) => `• ${l.name} — ${formatPhoneBR(l.phone)} — ${waLink(l.phone)}`),
   ]
     .filter((l) => l !== null)
     .join("\n");
@@ -62,7 +68,15 @@ function PromoPreview({
   useEffect(() => {
     let cancelled = false;
     let objectUrl: string | null = null;
-    generatePromoImage({ campaignName, priceCents, drawDate, prizes, promoBuyQuantity, promoFreeQuantity })
+    generatePromoImage({
+      campaignName,
+      priceCents,
+      drawDate,
+      prizes,
+      promoBuyQuantity,
+      promoFreeQuantity,
+      leaders,
+    })
       .then((blob) => {
         if (cancelled) return;
         objectUrl = URL.createObjectURL(blob);
@@ -88,6 +102,7 @@ function PromoPreview({
         prizes,
         promoBuyQuantity,
         promoFreeQuantity,
+        leaders,
       });
       const fileName = `${campaignName.replace(/\s+/g, "-").toLowerCase()}-divulgacao.png`;
       const file = new File([blob], fileName, { type: "image/png" });

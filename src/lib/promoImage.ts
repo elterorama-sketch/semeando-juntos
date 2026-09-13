@@ -1,4 +1,5 @@
 import { formatCentsBRL, formatDate } from "@/lib/format";
+import { formatPhoneBR, type CampaignLeader } from "@/lib/campaignLeaders";
 
 export interface PromoImageData {
   campaignName: string;
@@ -7,6 +8,7 @@ export interface PromoImageData {
   prizes: { position: number; title: string }[];
   promoBuyQuantity: number | null;
   promoFreeQuantity: number | null;
+  leaders: CampaignLeader[];
 }
 
 const COLORS = {
@@ -19,7 +21,6 @@ const COLORS = {
 };
 
 const WIDTH = 1080;
-const HEIGHT = 1350;
 
 function roundedRect(
   ctx: CanvasRenderingContext2D,
@@ -57,8 +58,17 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
 
 // A poster-style invite image -- shareable in WhatsApp groups/status to get
 // church members buying numbers *through a cooperador*, since there's no
-// public self-checkout in this app by design (assisted-sale model).
+// public self-checkout in this app by design (assisted-sale model). Ends
+// with a named list of leaders + WhatsApp numbers to drive direct contact.
 export async function generatePromoImage(data: PromoImageData): Promise<Blob> {
+  const leaders = data.leaders;
+  const leaderRows = Math.max(1, Math.ceil(leaders.length / 2));
+  const LEADERS_CARD_H = leaders.length > 0 ? 90 + leaderRows * 66 + 20 : 130;
+  const prizeLines = data.prizes.slice(0, 4);
+  const PRIZES_CARD_H = 90 + prizeLines.length * 64 + (data.drawDate ? 70 : 20);
+  const HEIGHT =
+    100 + 60 + 60 * 2 + 20 + 4 + 50 + 60 + 60 + PRIZES_CARD_H + 60 + 44 + LEADERS_CARD_H + 130;
+
   const canvas = document.createElement("canvas");
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
@@ -128,10 +138,8 @@ export async function generatePromoImage(data: PromoImageData): Promise<Blob> {
   // Prizes card
   const cardX = 80;
   const cardW = WIDTH - 160;
-  const prizeLines = data.prizes.slice(0, 4);
-  const cardH = 90 + prizeLines.length * 64 + (data.drawDate ? 70 : 20);
   ctx.fillStyle = COLORS.offWhite;
-  roundedRect(ctx, cardX, y, cardW, cardH, 28);
+  roundedRect(ctx, cardX, y, cardW, PRIZES_CARD_H, 28);
   ctx.fill();
 
   let cy = y + 60;
@@ -142,7 +150,6 @@ export async function generatePromoImage(data: PromoImageData): Promise<Blob> {
 
   ctx.font = "700 32px system-ui, sans-serif";
   prizeLines.forEach((p) => {
-    ctx.fillStyle = COLORS.terracota;
     const ordinal = `${p.position}º`;
     const text = `${ordinal} — ${p.title}`;
     const lines = wrapText(ctx, text, cardW - 80);
@@ -161,23 +168,60 @@ export async function generatePromoImage(data: PromoImageData): Promise<Blob> {
     ctx.fillText(`Sorteio em ${formatDate(data.drawDate)}`, centerX, cy);
   }
 
-  y += cardH + 60;
+  y += PRIZES_CARD_H + 60;
 
-  // Call to action
+  // Call to action headline
   ctx.fillStyle = COLORS.terracota;
-  roundedRect(ctx, cardX, y, cardW, 130, 24);
-  ctx.fill();
+  ctx.font = "800 34px system-ui, sans-serif";
+  ctx.fillText(
+    leaders.length > 0 ? "📲 COMPRE OU RESERVE PELO WHATSAPP" : "📲 GARANTA JÁ SEUS NÚMEROS",
+    centerX,
+    y
+  );
+  y += 44;
+
   ctx.fillStyle = COLORS.offWhite;
-  ctx.font = "700 32px system-ui, sans-serif";
-  const cta1 = wrapText(ctx, "Procure um cooperador da sua congregação", cardW - 60);
-  const cta2 = "e garanta já seus números pelo WhatsApp!";
-  let ctaY = y + 44;
-  cta1.forEach((line) => {
-    ctx.fillText(line, centerX, ctaY);
-    ctaY += 38;
-  });
-  ctx.font = "700 30px system-ui, sans-serif";
-  ctx.fillText(cta2, centerX, ctaY);
+  roundedRect(ctx, cardX, y, cardW, LEADERS_CARD_H, 28);
+  ctx.fill();
+
+  if (leaders.length > 0) {
+    // Leaders card: name + WhatsApp number, two columns
+    let ly = y + 56;
+    ctx.fillStyle = COLORS.verdeOliva;
+    ctx.font = "600 24px system-ui, sans-serif";
+    ctx.fillText("FALE COM UM COOPERADOR", centerX, ly);
+    ly += 44;
+
+    const colW = (cardW - 60) / 2;
+    const col1X = cardX + 30 + colW / 2;
+    const col2X = cardX + 30 + colW + colW / 2;
+    const rowH = 66;
+    leaders.forEach((leader, i) => {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const x = col === 0 ? col1X : col2X;
+      const rowY = ly + row * rowH;
+
+      ctx.font = "700 30px system-ui, sans-serif";
+      ctx.fillStyle = COLORS.verdeProfundo;
+      ctx.fillText(leader.name, x, rowY);
+
+      ctx.font = "600 26px system-ui, sans-serif";
+      ctx.fillStyle = COLORS.terracota;
+      ctx.fillText(`📱 ${formatPhoneBR(leader.phone)}`, x, rowY + 32);
+    });
+  } else {
+    ctx.fillStyle = COLORS.verdeProfundo;
+    ctx.font = "700 30px system-ui, sans-serif";
+    const cta1 = wrapText(ctx, "Procure um cooperador da sua congregação", cardW - 60);
+    let ctaY = y + 54;
+    cta1.forEach((line) => {
+      ctx.fillText(line, centerX, ctaY);
+      ctaY += 38;
+    });
+    ctx.font = "700 28px system-ui, sans-serif";
+    ctx.fillText("e garanta já seus números!", centerX, ctaY);
+  }
 
   ctx.fillStyle = "rgba(243,236,221,0.6)";
   ctx.font = "italic 500 26px system-ui, sans-serif";

@@ -32,13 +32,14 @@ export default async function DashboardPage() {
   }
 
   const supabase = await createClient();
-  const [{ data: numbers }, { data: prizes }] = await Promise.all([
+  const [{ data: numbers }, { data: prizes }, { data: leaders }] = await Promise.all([
     supabase.from("campaign_numbers").select("status").eq("campaign_id", campaign.id),
     supabase
       .from("campaign_prizes")
       .select("position, title")
       .eq("campaign_id", campaign.id)
       .order("position"),
+    supabase.from("promo_leaders").select("name, phone").eq("active", true).order("sort_order"),
   ]);
 
   const counts: Record<NumberStatus, number> = {
@@ -147,6 +148,7 @@ export default async function DashboardPage() {
               prizes={prizes ?? []}
               promoBuyQuantity={campaign.promo_buy_quantity}
               promoFreeQuantity={campaign.promo_free_quantity}
+              leaders={leaders ?? []}
             />
           )}
         </div>

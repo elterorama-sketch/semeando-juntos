@@ -57,6 +57,15 @@ export interface CampaignPrize {
   created_at: string;
 }
 
+export interface PromoLeader {
+  id: string;
+  name: string;
+  phone: string;
+  sort_order: number;
+  active: boolean;
+  created_at: string;
+}
+
 export interface Customer {
   id: string;
   name: string;
@@ -182,6 +191,7 @@ export interface Database {
       profiles: TableDef<Profile>;
       campaigns: TableDef<Campaign>;
       campaign_prizes: TableDef<CampaignPrize>;
+      promo_leaders: TableDef<PromoLeader>;
       customers: TableDef<Customer>;
       orders: TableDef<Order>;
       campaign_numbers: TableDef<CampaignNumber>;
