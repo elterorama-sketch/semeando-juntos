@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatCentsBRL, formatNumber } from "@/lib/format";
 import ActionButton from "@/components/ActionButton";
+import { PIX_COPIA_COLA } from "@/lib/pix";
 import type { Congregation, PaymentMethod } from "@/lib/database.types";
 
 interface SellDrawerProps {
@@ -74,6 +75,7 @@ export default function SellDrawer({
   const [congregationId, setCongregationId] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("PIX");
   const [receivedReais, setReceivedReais] = useState("");
+  const [pixCopied, setPixCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { units, shortfall } = promoState(selectedNumbers.length, promoBuyQuantity, promoFreeQuantity);
@@ -365,6 +367,35 @@ export default function SellDrawer({
                         : `Troco: ${formatCentsBRL(changeCents)}`}
                   </p>
                 )}
+              </div>
+            )}
+
+            {paymentMethod === "PIX" && (
+              <div className="mt-3 rounded-xl bg-creme p-3 text-center">
+                <p className="mb-2 text-sm font-medium text-verde-profundo">
+                  Mostre este QR Code para o comprador pagar {formatCentsBRL(totalCents)}
+                </p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/pix-qrcode.png"
+                  alt="QR Code Pix"
+                  className="mx-auto h-40 w-40 rounded-lg bg-white p-1"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(PIX_COPIA_COLA);
+                    setPixCopied(true);
+                    setTimeout(() => setPixCopied(false), 1800);
+                  }}
+                  className="tap-target mt-2 w-full rounded-xl bg-verde-profundo py-2 text-sm font-semibold uppercase tracking-wide text-off-white"
+                >
+                  {pixCopied ? "Código copiado ✓" : "Copiar código Pix"}
+                </button>
+                <p className="mt-2 text-xs text-verde-oliva">
+                  O valor não vem preenchido no código -- confirme que o comprador digitou{" "}
+                  {formatCentsBRL(totalCents)} antes de continuar.
+                </p>
               </div>
             )}
           </div>
