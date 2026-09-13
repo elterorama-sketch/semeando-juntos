@@ -61,7 +61,11 @@ export default function CampaignSettingsForm({ campaign }: { campaign: Campaign 
       .eq("id", campaign.id);
 
     if (updateError) {
-      setError("Erro ao salvar. Tente novamente.");
+      setError(
+        updateError.message.includes("one_active_campaign_at_a_time")
+          ? "Já existe outra campanha ATIVA. Pause ou encerre a outra antes de ativar esta."
+          : "Erro ao salvar. Tente novamente."
+      );
       throw updateError;
     }
     router.refresh();
