@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatCentsBRL } from "@/lib/format";
+import { uploadPaymentReceipt } from "@/lib/receiptUpload";
 import ActionButton from "@/components/ActionButton";
 import type { PaymentMethod } from "@/lib/database.types";
 
@@ -19,15 +20,26 @@ export default function ConfirmPaymentButton({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [method, setMethod] = useState<PaymentMethod>(initialMethod ?? "PIX");
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleConfirm() {
     setError(null);
+    let receiptPath: string | null = null;
+    if (method === "PIX" && receiptFile) {
+      try {
+        receiptPath = await uploadPaymentReceipt(orderId, receiptFile);
+      } catch {
+        setError("Erro ao enviar o comprovante. Tente novamente.");
+        throw new Error("upload failed");
+      }
+    }
     const supabase = createClient();
     const { error: rpcError } = await supabase.rpc("confirm_payment", {
       p_order_id: orderId,
       p_amount_cents: totalCents,
       p_method: method,
+      p_receipt_path: receiptPath,
     });
     if (rpcError) {
       setError("Erro ao confirmar. Tente novamente.");
@@ -65,6 +77,23 @@ export default function ConfirmPaymentButton({
           </button>
         ))}
       </div>
+      {method === "PIX" && (
+        <label className="mb-2 block">
+          <span className="mb-1 block text-xs font-medium text-verde-profundo">
+            Foto do comprovante (opcional)
+          </span>
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
+            className="tap-target block w-full rounded-lg bg-white px-3 py-2 text-xs text-verde-profundo"
+          />
+          {receiptFile && (
+            <span className="mt-1 block text-xs text-verde-oliva">{receiptFile.name}</span>
+          )}
+        </label>
+      )}
       {error && <p className="mb-2 text-xs font-medium text-terracota">{error}</p>}
       <ActionButton
         label={`Confirmar ${formatCentsBRL(totalCents)}`}

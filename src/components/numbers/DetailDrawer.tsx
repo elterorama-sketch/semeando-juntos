@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatCentsBRL, formatDateTime, formatNumber } from "@/lib/format";
+import { uploadPaymentReceipt, getReceiptSignedUrl } from "@/lib/receiptUpload";
 import ActionButton from "@/components/ActionButton";
 import type { NumberStatus, PaymentMethod, Profile } from "@/lib/database.types";
 
@@ -20,7 +21,12 @@ interface OrderDetail {
     congregation: { name: string } | null;
   } | null;
   seller: { full_name: string } | null;
-  payments: { amount_cents: number; method: PaymentMethod; confirmed_at: string }[];
+  payments: {
+    amount_cents: number;
+    method: PaymentMethod;
+    confirmed_at: string;
+    receipt_path: string | null;
+  }[];
 }
 
 interface DetailDrawerProps {
@@ -54,7 +60,7 @@ export default function DetailDrawer({
       const { data } = await supabase
         .from("campaign_numbers")
         .select(
-          "order:orders(id, status, total_cents, note, expires_at, intended_payment_method, customer:customers(id, name, whatsapp, congregation:congregations(name)), seller:profiles!orders_seller_id_fkey(full_name), payments(amount_cents, method, confirmed_at))"
+          "order:orders(id, status, total_cents, note, expires_at, intended_payment_method, customer:customers(id, name, whatsapp, congregation:congregations(name)), seller:profiles!orders_seller_id_fkey(full_name), payments(amount_cents, method, confirmed_at, receipt_path))"
         )
         .eq("id", numberId)
         .single();
@@ -143,7 +149,13 @@ export default function DetailDrawer({
 
             {order.payments?.length > 0 && (
               <div className="rounded-xl bg-verde-oliva/10 p-3 text-sm text-verde-profundo">
-                Pago em {formatDateTime(order.payments[0].confirmed_at)} via {order.payments[0].method}
+                <p>
+                  Pago em {formatDateTime(order.payments[0].confirmed_at)} via{" "}
+                  {order.payments[0].method}
+                </p>
+                {order.payments[0].receipt_path && (
+                  <ReceiptViewer path={order.payments[0].receipt_path} />
+                )}
               </div>
             )}
           </div>
@@ -219,15 +231,26 @@ function PaymentModal({
   onConfirmed: () => void;
 }) {
   const [method, setMethod] = useState<PaymentMethod>(initialMethod ?? "PIX");
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleConfirm() {
     setError(null);
+    let receiptPath: string | null = null;
+    if (method === "PIX" && receiptFile) {
+      try {
+        receiptPath = await uploadPaymentReceipt(orderId, receiptFile);
+      } catch {
+        setError("Erro ao enviar o comprovante. Tente novamente.");
+        throw new Error("upload failed");
+      }
+    }
     const supabase = createClient();
     const { error: rpcError } = await supabase.rpc("confirm_payment", {
       p_order_id: orderId,
       p_amount_cents: totalCents,
       p_method: method,
+      p_receipt_path: receiptPath,
     });
     if (rpcError) {
       setError(
@@ -267,6 +290,22 @@ function PaymentModal({
           </div>
         </div>
 
+        {method === "PIX" && (
+          <label className="mt-3 block">
+            <span className="mb-1 block text-sm text-verde-oliva">Foto do comprovante (opcional)</span>
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
+              className="tap-target block w-full rounded-xl bg-creme px-3 py-2 text-xs text-verde-profundo"
+            />
+            {receiptFile && (
+              <span className="mt-1 block text-xs text-verde-oliva">{receiptFile.name}</span>
+            )}
+          </label>
+        )}
+
         {error && (
           <p role="alert" className="mt-3 text-sm font-medium text-terracota">
             {error}
@@ -289,6 +328,37 @@ function PaymentModal({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ReceiptViewer({ path }: { path: string }) {
+  const [state, setState] = useState<"idle" | "loading" | "error">("idle");
+
+  async function handleOpen() {
+    setState("loading");
+    try {
+      const url = await getReceiptSignedUrl(path);
+      window.open(url, "_blank", "noopener,noreferrer");
+      setState("idle");
+    } catch {
+      setState("error");
+    }
+  }
+
+  return (
+    <div className="mt-1">
+      <button
+        type="button"
+        onClick={handleOpen}
+        disabled={state === "loading"}
+        className="tap-target text-xs font-semibold uppercase tracking-wide text-verde-profundo underline disabled:opacity-60"
+      >
+        {state === "loading" ? "Abrindo..." : "📎 Ver comprovante"}
+      </button>
+      {state === "error" && (
+        <p className="text-xs font-medium text-terracota">Não foi possível abrir o comprovante.</p>
+      )}
     </div>
   );
 }

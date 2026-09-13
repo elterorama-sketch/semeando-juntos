@@ -118,6 +118,7 @@ export interface Payment {
   method: PaymentMethod;
   confirmed_by: string;
   confirmed_at: string;
+  receipt_path: string | null;
   created_at: string;
 }
 
@@ -216,7 +217,12 @@ export interface Database {
         Returns: ReserveNumbersResult[];
       };
       confirm_payment: {
-        Args: { p_order_id: string; p_amount_cents: number; p_method: PaymentMethod };
+        Args: {
+          p_order_id: string;
+          p_amount_cents: number;
+          p_method: PaymentMethod;
+          p_receipt_path?: string | null;
+        };
         Returns: undefined;
       };
       release_order: { Args: { p_order_id: string }; Returns: undefined };
