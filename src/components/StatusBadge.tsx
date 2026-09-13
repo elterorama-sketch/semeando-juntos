@@ -1,15 +1,22 @@
 import type { NumberStatus } from "@/lib/database.types";
 
+// Solid, high-contrast fills (not pale tints) so the three states a seller
+// actually needs to tell apart at a glance -- livre, reservado, pago -- read
+// instantly across a whole grid of 200 numbers, not just on close inspection.
 const STATUS_CONFIG: Record<NumberStatus, { label: string; icon: string; classes: string }> = {
-  DISPONIVEL: { label: "Disponível", icon: "○", classes: "bg-creme text-verde-profundo" },
-  RESERVADO: { label: "Reservado", icon: "◐", classes: "bg-amber-100 text-amber-900" },
+  DISPONIVEL: {
+    label: "Disponível",
+    icon: "○",
+    classes: "bg-white text-verde-profundo ring-1 ring-inset ring-verde-oliva/40",
+  },
+  RESERVADO: { label: "Reservado", icon: "◐", classes: "bg-amber-400 text-verde-profundo" },
   AGUARDANDO_PAGAMENTO: {
     label: "Aguardando pagamento",
     icon: "◑",
-    classes: "bg-orange-100 text-orange-900",
+    classes: "bg-orange-500 text-white",
   },
-  PAGO: { label: "Pago", icon: "●", classes: "bg-verde-oliva/20 text-verde-profundo" },
-  CANCELADO: { label: "Cancelado", icon: "✕", classes: "bg-neutral-200 text-neutral-500" },
+  PAGO: { label: "Pago", icon: "●", classes: "bg-emerald-600 text-white" },
+  CANCELADO: { label: "Cancelado", icon: "✕", classes: "bg-neutral-300 text-neutral-600" },
 };
 
 export function StatusBadge({ status }: { status: NumberStatus }) {
