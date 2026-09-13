@@ -302,7 +302,10 @@ export default function NumbersScreen({
       {showRandomPicker && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 md:items-center">
           <div className="w-full max-w-sm rounded-t-2xl bg-off-white p-5 md:rounded-2xl">
-            <h3 className="mb-3 text-lg font-bold text-verde-profundo">Quantos números?</h3>
+            <h3 className="mb-1 text-lg font-bold text-verde-profundo">Como escolher os números?</h3>
+            <p className="mb-4 text-sm text-verde-oliva">Você decide a quantidade e como selecionar.</p>
+
+            <p className="mb-2 text-sm font-medium text-verde-profundo">Quantidade desejada</p>
             <div className="flex items-center justify-center gap-4">
               <button
                 type="button"
@@ -320,13 +323,25 @@ export default function NumbersScreen({
                 +
               </button>
             </div>
+
             <div className="mt-5 space-y-2">
               <button
                 type="button"
                 onClick={() => pickRandom(randomCount)}
                 className="tap-target w-full rounded-xl bg-verde-profundo py-3 font-semibold uppercase tracking-wide text-off-white"
               >
-                Escolher {randomCount}
+                Sortear {randomCount} pelo sistema
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRandomPicker(false);
+                  setMultiMode(true);
+                  setSelected(new Set());
+                }}
+                className="tap-target w-full rounded-xl bg-creme py-3 font-semibold uppercase tracking-wide text-verde-profundo"
+              >
+                Escolher manualmente na grade
               </button>
               <button
                 type="button"
