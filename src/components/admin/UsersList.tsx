@@ -18,6 +18,9 @@ export default function UsersList({
 }) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [revealedId, setRevealedId] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState<{ login: string; password: string } | null>(null);
+  const [revealError, setRevealError] = useState<string | null>(null);
   const congregationName = (id: string | null) => congregations.find((c) => c.id === id)?.name;
 
   async function toggleActive(user: Profile) {
@@ -28,6 +31,24 @@ export default function UsersList({
       .eq("id", user.id);
     if (error) throw error;
     router.refresh();
+  }
+
+  async function handleRevealPassword(user: Profile) {
+    setRevealError(null);
+    const res = await fetch("/api/admin/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user.id }),
+    });
+    const json = await res.json().catch(() => ({ error: "Erro inesperado do servidor." }));
+    if (!res.ok) {
+      setRevealError(json.error ?? "Erro ao gerar senha.");
+      setRevealedId(user.id);
+      setRevealed(null);
+      throw new Error(json.error);
+    }
+    setRevealedId(user.id);
+    setRevealed({ login: json.login, password: json.password });
   }
 
   return (
@@ -46,16 +67,18 @@ export default function UsersList({
               }}
             />
           ) : (
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-verde-profundo">{u.full_name}</p>
-                <p className="text-xs text-verde-oliva">
-                  {ROLE_LABEL[u.role] ?? u.role}
-                  {congregationName(u.congregation_id) ? ` · ${congregationName(u.congregation_id)}` : ""}
-                  {!u.active ? " · inativo" : ""}
-                </p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="font-medium text-verde-profundo">{u.full_name}</p>
+                  <p className="text-xs text-verde-oliva">
+                    {ROLE_LABEL[u.role] ?? u.role}
+                    {congregationName(u.congregation_id) ? ` · ${congregationName(u.congregation_id)}` : ""}
+                    {!u.active ? " · inativo" : ""}
+                  </p>
+                </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => setEditingId(u.id)}
@@ -63,6 +86,16 @@ export default function UsersList({
                 >
                   Editar
                 </button>
+                <div className="w-40">
+                  <ActionButton
+                    label="Exibir senha inicial"
+                    labelDoing="Gerando..."
+                    labelDone="Gerada ✓"
+                    variant="secondary"
+                    fullWidth
+                    onAction={() => handleRevealPassword(u)}
+                  />
+                </div>
                 <div className="w-28">
                   <ActionButton
                     label={u.active ? "Desativar" : "Ativar"}
@@ -74,6 +107,28 @@ export default function UsersList({
                   />
                 </div>
               </div>
+              {revealedId === u.id && (
+                <div className="rounded-xl bg-white p-3 text-sm">
+                  {revealed ? (
+                    <>
+                      <p className="text-xs text-verde-oliva">
+                        Nova senha gerada para {u.full_name}. Envie por WhatsApp -- ela substitui a
+                        anterior e só aparece aqui agora.
+                      </p>
+                      <p className="mt-1">
+                        <span className="font-semibold text-verde-profundo">Login:</span>{" "}
+                        {revealed.login}
+                      </p>
+                      <p>
+                        <span className="font-semibold text-verde-profundo">Senha:</span>{" "}
+                        {revealed.password}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm font-medium text-terracota">{revealError}</p>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
