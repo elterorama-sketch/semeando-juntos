@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { formatCentsBRL, formatDate, formatNumber } from "@/lib/format";
+import { generateReceiptImage } from "@/lib/receiptImage";
 
 interface ReceiptCardProps {
   status?: "paid" | "reserved";
@@ -17,8 +18,9 @@ interface ReceiptCardProps {
 // Modeled after a card-machine (maquineta) confirmation screen: a full,
 // unmistakable color signal (green = approved/paid, yellow = pending) so a
 // seller glancing at the phone from across the room -- or the buyer -- knows
-// instantly whether money still needs to change hands, plus a share button
-// to hand the receipt straight to the buyer.
+// instantly whether money still needs to change hands. The shareable output
+// is a branded image (campaign poster palette) instead of plain text, so it
+// looks like an official receipt when forwarded on WhatsApp.
 export default function ReceiptCard({
   status = "paid",
   campaignName,
@@ -30,6 +32,8 @@ export default function ReceiptCard({
   onClose,
 }: ReceiptCardProps) {
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
+  const [imageState, setImageState] = useState<"idle" | "generating" | "error">("idle");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const isPaid = status === "paid";
 
   const text = [
@@ -51,18 +55,72 @@ export default function ReceiptCard({
     .filter((line) => line !== null)
     .join("\n");
 
-  async function handleShare() {
-    if (navigator.share) {
-      try {
-        await navigator.share({ text, title: campaignName });
-        return;
-      } catch {
-        // user cancelled the share sheet — fall through to clipboard
+  useEffect(() => {
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    generateReceiptImage({
+      status,
+      campaignName,
+      customerName,
+      numbers,
+      totalCents,
+      changeCents,
+      drawDate,
+    })
+      .then((blob) => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        setPreviewUrl(objectUrl);
+      })
+      .catch(() => {
+        if (!cancelled) setImageState("error");
+      });
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleShareImage() {
+    setImageState("generating");
+    try {
+      const blob = await generateReceiptImage({
+        status,
+        campaignName,
+        customerName,
+        numbers,
+        totalCents,
+        changeCents,
+        drawDate,
+      });
+      const fileName = `${campaignName.replace(/\s+/g, "-").toLowerCase()}-comprovante.png`;
+      const file = new File([blob], fileName, { type: "image/png" });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        setImageState("idle");
+        try {
+          await navigator.share({ files: [file], title: campaignName, text });
+          return;
+        } catch {
+          // user cancelled the share sheet
+          return;
+        }
       }
+
+      // Fallback: download the image directly.
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setImageState("idle");
+    } catch {
+      setImageState("error");
     }
-    await navigator.clipboard.writeText(text);
-    setCopyState("copied");
-    setTimeout(() => setCopyState("idle"), 1800);
   }
 
   async function handleCopy() {
@@ -74,53 +132,31 @@ export default function ReceiptCard({
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 md:items-center">
       <div className="w-full max-w-sm rounded-t-2xl bg-off-white p-5 md:rounded-2xl">
-        <div
-          className={`rounded-2xl p-5 text-center ${
-            isPaid ? "bg-emerald-600 text-white" : "bg-amber-400 text-verde-profundo"
-          }`}
-        >
-          <p
-            className={`text-xs font-semibold uppercase tracking-widest ${
-              isPaid ? "text-white/70" : "text-verde-profundo/70"
-            }`}
-          >
-            {campaignName}
-          </p>
-          <p className="mt-3 text-2xl" aria-hidden>
-            {isPaid ? "✓" : "⏳"}
-          </p>
-          <p className="mt-1 text-lg font-bold">
-            {isPaid ? "PAGAMENTO CONFIRMADO" : "AGUARDANDO PAGAMENTO"}
-          </p>
-          <p className="mt-3 font-medium">{customerName}</p>
-          <p className={`mt-2 text-sm ${isPaid ? "text-white/80" : "text-verde-profundo/70"}`}>
-            Números
-          </p>
-          <p className="text-xl font-bold tracking-wide">
-            {numbers.map((n) => formatNumber(n)).join(" • ")}
-          </p>
-          <p className="mt-3 text-2xl font-bold">{formatCentsBRL(totalCents)}</p>
-          {isPaid && changeCents != null && changeCents > 0 && (
-            <p className="mt-1 text-sm font-semibold">Troco: {formatCentsBRL(changeCents)}</p>
+        <div className="overflow-hidden rounded-2xl bg-verde-profundo shadow-lg">
+          {previewUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={previewUrl} alt="Comprovante" className="block w-full" />
+          ) : (
+            <div className="flex aspect-[4/5] w-full items-center justify-center">
+              <p className="text-sm text-creme/70">Gerando comprovante...</p>
+            </div>
           )}
-          {drawDate && (
-            <p className={`mt-2 text-sm ${isPaid ? "text-white/80" : "text-verde-profundo/70"}`}>
-              Sorteio em {formatDate(drawDate)}
-            </p>
-          )}
-          <p className={`mt-4 text-sm italic ${isPaid ? "text-white/70" : "text-verde-profundo/70"}`}>
-            {isPaid ? "Obrigado por participar!" : "Confirme o pagamento assim que possível."}
-          </p>
         </div>
 
         <div className="mt-4 space-y-2">
           <button
             type="button"
-            onClick={handleShare}
-            className="tap-target w-full rounded-xl bg-terracota py-3 font-semibold uppercase tracking-wide text-off-white hover:bg-terracota/90"
+            onClick={handleShareImage}
+            disabled={imageState === "generating"}
+            className="tap-target w-full rounded-xl bg-terracota py-3 font-semibold uppercase tracking-wide text-off-white hover:bg-terracota/90 disabled:opacity-60"
           >
-            Compartilhar
+            {imageState === "generating" ? "Gerando imagem..." : "Compartilhar imagem"}
           </button>
+          {imageState === "error" && (
+            <p className="text-center text-sm font-medium text-terracota">
+              Não foi possível gerar a imagem. Tente novamente.
+            </p>
+          )}
           <button
             type="button"
             onClick={handleCopy}
