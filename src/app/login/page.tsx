@@ -59,13 +59,13 @@ function LoginForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="login" className="mb-1 block text-sm font-medium text-verde-profundo">
-              WhatsApp
+              WhatsApp ou e-mail
             </label>
             <input
               id="login"
               type="text"
-              inputMode="tel"
-              placeholder="Ex: 11999998888"
+              inputMode="email"
+              placeholder="Ex: 11999998888 ou seu@email.com"
               required
               autoComplete="username"
               value={login}
