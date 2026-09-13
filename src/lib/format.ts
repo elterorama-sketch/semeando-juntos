@@ -8,7 +8,13 @@ export function formatNumber(n: number, digits = 3): string {
 
 export function formatDateTime(iso: string | null): string {
   if (!iso) return "-";
+  // Pages that render this run as React Server Components on Vercel, whose
+  // runtime clock is UTC -- without an explicit timeZone here,
+  // toLocaleString() converts to the *server's* zone, not the visitor's,
+  // showing a time hours ahead of Brasília. The app is Brazil-only, so
+  // hardcoding it is correct in every render context (server or browser).
   return new Date(iso).toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
