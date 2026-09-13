@@ -253,7 +253,7 @@ export async function generatePromoImage(data: PromoImageData): Promise<Blob> {
   let congY = y + 42;
   ctx.fillStyle = COLORS.creme;
   ctx.font = "700 26px system-ui, sans-serif";
-  ctx.fillText("⛪ A arrecadação ajuda os varões a irem ao:", centerX, congY);
+  ctx.fillText("⛪ Toda a arrecadação é para o:", centerX, congY);
   congY += 36;
 
   ctx.fillStyle = COLORS.offWhite;
