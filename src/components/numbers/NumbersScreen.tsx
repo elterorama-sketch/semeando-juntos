@@ -48,9 +48,13 @@ export default function NumbersScreen({
   const [detailId, setDetailId] = useState<{ id: string; number: number; status: NumberStatus } | null>(
     null
   );
-  const [receipt, setReceipt] = useState<{ numbers: number[]; customerName: string; totalCents: number } | null>(
-    null
-  );
+  const [receipt, setReceipt] = useState<{
+    status: "paid" | "reserved";
+    numbers: number[];
+    customerName: string;
+    totalCents: number;
+    changeCents: number | null;
+  } | null>(null);
   const [randomCount, setRandomCount] = useState(5);
   const [showRandomPicker, setShowRandomPicker] = useState(false);
 
@@ -352,13 +356,13 @@ export default function NumbersScreen({
             setMultiMode(false);
             refresh();
             router.replace("/numeros");
-            if (result.paid) {
-              setReceipt({
-                numbers: result.numbers,
-                customerName: result.customerName,
-                totalCents: result.totalCents,
-              });
-            }
+            setReceipt({
+              status: result.paid ? "paid" : "reserved",
+              numbers: result.numbers,
+              customerName: result.customerName,
+              totalCents: result.totalCents,
+              changeCents: result.changeCents,
+            });
           }}
         />
       )}
@@ -371,16 +375,18 @@ export default function NumbersScreen({
           profile={profile}
           onClose={() => setDetailId(null)}
           onChanged={refresh}
-          onPaymentConfirmed={(info) => setReceipt({ ...info, numbers: info.numbers })}
+          onPaymentConfirmed={(info) => setReceipt({ ...info, status: "paid", changeCents: null })}
         />
       )}
 
       {receipt && (
         <ReceiptCard
+          status={receipt.status}
           campaignName={campaign.name}
           customerName={receipt.customerName}
           numbers={receipt.numbers}
           totalCents={receipt.totalCents}
+          changeCents={receipt.changeCents}
           drawDate={campaign.draw_date}
           onClose={() => setReceipt(null)}
         />

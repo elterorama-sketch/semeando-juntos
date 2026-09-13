@@ -15,7 +15,13 @@ interface SellDrawerProps {
   promoBuyQuantity: number | null;
   promoFreeQuantity: number | null;
   onClose: () => void;
-  onSold: (result: { numbers: number[]; customerName: string; totalCents: number; paid: boolean }) => void;
+  onSold: (result: {
+    numbers: number[];
+    customerName: string;
+    totalCents: number;
+    paid: boolean;
+    changeCents: number | null;
+  }) => void;
 }
 
 // Mirrors the pricing/validation math in reserve_numbers() (see
@@ -67,6 +73,7 @@ export default function SellDrawer({
   const [note, setNote] = useState("");
   const [congregationId, setCongregationId] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("PIX");
+  const [receivedReais, setReceivedReais] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const { units, shortfall } = promoState(selectedNumbers.length, promoBuyQuantity, promoFreeQuantity);
@@ -74,6 +81,10 @@ export default function SellDrawer({
   const fullPriceCents = priceCents * selectedNumbers.length;
   const hasDiscount = shortfall === 0 && units < selectedNumbers.length;
   const sorted = [...selectedNumbers].sort((a, b) => a - b);
+
+  const isCash = mode === "vender" && paymentMethod === "DINHEIRO";
+  const receivedCents = isCash ? Math.round(parseFloat(receivedReais.replace(",", ".")) * 100) : NaN;
+  const changeCents = isCash && !Number.isNaN(receivedCents) ? receivedCents - totalCents : null;
 
   function toggleNumber(n: number) {
     setSelectedNumbers((prev) =>
@@ -91,6 +102,10 @@ export default function SellDrawer({
     }
     if (!name.trim()) {
       setError("Informe o nome do comprador.");
+      throw new Error("validation");
+    }
+    if (isCash && (Number.isNaN(receivedCents) || receivedCents < totalCents)) {
+      setError("Informe um valor recebido igual ou maior que o total.");
       throw new Error("validation");
     }
     const supabase = createClient();
@@ -127,7 +142,13 @@ export default function SellDrawer({
       paid = !confirmError;
     }
 
-    onSold({ numbers: sorted, customerName: name.trim(), totalCents, paid });
+    onSold({
+      numbers: sorted,
+      customerName: name.trim(),
+      totalCents,
+      paid,
+      changeCents: paid && isCash ? changeCents : null,
+    });
   }
 
   const title =
@@ -304,6 +325,35 @@ export default function SellDrawer({
                   </button>
                 ))}
               </div>
+
+              {isCash && (
+                <div className="mt-3 rounded-xl bg-creme p-3">
+                  <label htmlFor="received" className="mb-1 block text-sm font-medium text-verde-profundo">
+                    Valor recebido (R$)
+                  </label>
+                  <input
+                    id="received"
+                    value={receivedReais}
+                    onChange={(e) => setReceivedReais(e.target.value)}
+                    inputMode="decimal"
+                    placeholder={(totalCents / 100).toFixed(2)}
+                    className="tap-target w-full rounded-xl border border-verde-oliva/30 bg-white px-4 py-3 text-center text-lg font-bold outline-none focus:border-verde-profundo"
+                  />
+                  {receivedReais.trim() !== "" && (
+                    <p
+                      className={`mt-2 text-center text-sm font-semibold ${
+                        changeCents !== null && changeCents < 0 ? "text-terracota" : "text-verde-profundo"
+                      }`}
+                    >
+                      {changeCents === null
+                        ? ""
+                        : changeCents < 0
+                          ? `Faltam ${formatCentsBRL(-changeCents)}`
+                          : `Troco: ${formatCentsBRL(changeCents)}`}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -332,7 +382,7 @@ export default function SellDrawer({
             labelDoing={mode === "reservar" ? "Reservando..." : "Vendendo..."}
             labelDone={mode === "reservar" ? "Reservado ✓" : "Vendido ✓"}
             onAction={handleReserve}
-            disabled={shortfall > 0}
+            disabled={shortfall > 0 || (isCash && (Number.isNaN(receivedCents) || receivedCents < totalCents))}
           />
         </div>
       </div>

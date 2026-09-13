@@ -4,28 +4,38 @@ import { useState } from "react";
 import { formatCentsBRL, formatDate, formatNumber } from "@/lib/format";
 
 interface ReceiptCardProps {
+  status?: "paid" | "reserved";
   campaignName: string;
   customerName: string;
   numbers: number[];
   totalCents: number;
+  changeCents?: number | null;
   drawDate: string | null;
   onClose: () => void;
 }
 
+// Modeled after a card-machine (maquineta) confirmation screen: a full,
+// unmistakable color signal (green = approved/paid, yellow = pending) so a
+// seller glancing at the phone from across the room -- or the buyer -- knows
+// instantly whether money still needs to change hands, plus a share button
+// to hand the receipt straight to the buyer.
 export default function ReceiptCard({
+  status = "paid",
   campaignName,
   customerName,
   numbers,
   totalCents,
+  changeCents,
   drawDate,
   onClose,
 }: ReceiptCardProps) {
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
+  const isPaid = status === "paid";
 
   const text = [
     campaignName.toUpperCase(),
     "",
-    "PAGAMENTO CONFIRMADO ✓",
+    isPaid ? "PAGAMENTO CONFIRMADO ✓" : "RESERVADO — AGUARDANDO PAGAMENTO",
     "",
     customerName,
     "",
@@ -33,9 +43,10 @@ export default function ReceiptCard({
     numbers.map((n) => formatNumber(n)).join(" • "),
     "",
     `Valor: ${formatCentsBRL(totalCents)}`,
+    changeCents && changeCents > 0 ? `Troco: ${formatCentsBRL(changeCents)}` : null,
     drawDate ? `Sorteio: ${formatDate(drawDate)}` : null,
     "",
-    "Obrigado por participar!",
+    isPaid ? "Obrigado por participar!" : "Aguardamos o pagamento para confirmar sua participação.",
   ]
     .filter((line) => line !== null)
     .join("\n");
@@ -63,21 +74,43 @@ export default function ReceiptCard({
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 md:items-center">
       <div className="w-full max-w-sm rounded-t-2xl bg-off-white p-5 md:rounded-2xl">
-        <div className="rounded-2xl bg-verde-profundo p-5 text-center text-off-white">
-          <p className="text-xs font-semibold uppercase tracking-widest text-off-white/70">
+        <div
+          className={`rounded-2xl p-5 text-center ${
+            isPaid ? "bg-emerald-600 text-white" : "bg-amber-400 text-verde-profundo"
+          }`}
+        >
+          <p
+            className={`text-xs font-semibold uppercase tracking-widest ${
+              isPaid ? "text-white/70" : "text-verde-profundo/70"
+            }`}
+          >
             {campaignName}
           </p>
-          <p className="mt-3 text-lg font-bold">PAGAMENTO CONFIRMADO ✓</p>
+          <p className="mt-3 text-2xl" aria-hidden>
+            {isPaid ? "✓" : "⏳"}
+          </p>
+          <p className="mt-1 text-lg font-bold">
+            {isPaid ? "PAGAMENTO CONFIRMADO" : "AGUARDANDO PAGAMENTO"}
+          </p>
           <p className="mt-3 font-medium">{customerName}</p>
-          <p className="mt-2 text-sm text-off-white/80">Números</p>
+          <p className={`mt-2 text-sm ${isPaid ? "text-white/80" : "text-verde-profundo/70"}`}>
+            Números
+          </p>
           <p className="text-xl font-bold tracking-wide">
             {numbers.map((n) => formatNumber(n)).join(" • ")}
           </p>
           <p className="mt-3 text-2xl font-bold">{formatCentsBRL(totalCents)}</p>
-          {drawDate && (
-            <p className="mt-2 text-sm text-off-white/80">Sorteio em {formatDate(drawDate)}</p>
+          {isPaid && changeCents != null && changeCents > 0 && (
+            <p className="mt-1 text-sm font-semibold">Troco: {formatCentsBRL(changeCents)}</p>
           )}
-          <p className="mt-4 text-sm italic text-off-white/70">Obrigado por participar!</p>
+          {drawDate && (
+            <p className={`mt-2 text-sm ${isPaid ? "text-white/80" : "text-verde-profundo/70"}`}>
+              Sorteio em {formatDate(drawDate)}
+            </p>
+          )}
+          <p className={`mt-4 text-sm italic ${isPaid ? "text-white/70" : "text-verde-profundo/70"}`}>
+            {isPaid ? "Obrigado por participar!" : "Confirme o pagamento assim que possível."}
+          </p>
         </div>
 
         <div className="mt-4 space-y-2">
