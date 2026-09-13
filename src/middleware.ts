@@ -34,6 +34,16 @@ export async function middleware(request: NextRequest) {
   const isPublicPath = PUBLIC_PATHS.some((path) => request.nextUrl.pathname.startsWith(path));
 
   if (!user && !isPublicPath) {
+    // API routes (including Vercel Cron hits, which authenticate via a
+    // Bearer header, not a session cookie) should get a normal 401 they can
+    // parse as JSON -- not an HTML redirect to /login. A redirect here was
+    // silently swallowing every cron call to expire-reservations (Vercel
+    // Cron doesn't follow redirects), and would make a client-side fetch()
+    // whose session just expired misread a followed 200 /login page as a
+    // successful response instead of an auth failure.
+    if (request.nextUrl.pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    }
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", request.nextUrl.pathname);
