@@ -53,7 +53,7 @@ function LoginForm() {
             🌱
           </div>
           <h1 className="text-2xl font-bold text-verde-profundo">Semeando Juntos</h1>
-          <p className="mt-1 text-sm text-verde-oliva">Acesso restrito a vendedores autorizados</p>
+          <p className="mt-1 text-sm text-verde-oliva">Acesso restrito a cooperadores autorizados</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

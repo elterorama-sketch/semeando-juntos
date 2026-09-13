@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import ActionButton from "@/components/ActionButton";
 import type { Congregation, Profile, UserRole } from "@/lib/database.types";
 
-const ROLE_LABEL: Record<string, string> = { admin: "Admin", treasurer: "Tesoureiro", seller: "Vendedor" };
+const ROLE_LABEL: Record<string, string> = { admin: "Admin", treasurer: "Tesoureiro", seller: "Cooperador" };
 const ROLE_OPTIONS: UserRole[] = ["seller", "treasurer", "admin"];
 
 export default function UsersList({

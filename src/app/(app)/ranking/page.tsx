@@ -19,7 +19,7 @@ export default async function RankingPage() {
   if (!profile || (profile.role !== "admin" && profile.role !== "treasurer")) {
     return (
       <>
-        <TopBar title="Ranking de vendedores" />
+        <TopBar title="Ranking de cooperadores" />
         <NoPermission />
       </>
     );
@@ -29,7 +29,7 @@ export default async function RankingPage() {
   if (!campaign) {
     return (
       <>
-        <TopBar title="Ranking de vendedores" />
+        <TopBar title="Ranking de cooperadores" />
         <div className="p-6 text-center text-verde-oliva">Nenhuma campanha ativa.</div>
       </>
     );
@@ -73,7 +73,7 @@ export default async function RankingPage() {
 
   return (
     <>
-      <TopBar title="Ranking de vendedores" />
+      <TopBar title="Ranking de cooperadores" />
       <main className="flex-1 space-y-2 p-4 md:p-6">
         {ranking.length === 0 && (
           <p className="py-10 text-center text-sm text-verde-oliva">Nenhuma venda registrada ainda.</p>

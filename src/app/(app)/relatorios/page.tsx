@@ -34,12 +34,12 @@ export default async function RelatoriosPage() {
           <h3 className="mb-2 font-semibold text-verde-profundo">Exportar vendas</h3>
           <p className="mb-3 text-sm text-verde-oliva">
             Gera um CSV com todos os pedidos (reservados, pendentes e pagos) desta campanha: números,
-            comprador, vendedor, status, valor e data.
+            comprador, cooperador, status, valor e data.
           </p>
           <ExportCsvButton campaignId={campaign.id} />
         </div>
         <p className="text-xs text-verde-oliva/70">
-          Consulte também Ranking (vendas por vendedor) e Tesouraria (pendências e arrecadação).
+          Consulte também Ranking (vendas por cooperador) e Tesouraria (pendências e arrecadação).
           Exportação em PDF está prevista para uma próxima versão.
         </p>
       </main>

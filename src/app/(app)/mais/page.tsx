@@ -11,7 +11,7 @@ export default async function MaisPage() {
   const items = [
     { href: "/compradores", label: "Compradores", icon: "👤", roles: ["admin", "treasurer", "seller"] },
     { href: "/tesouraria", label: "Tesouraria", icon: "💰", roles: ["admin", "treasurer"] },
-    { href: "/ranking", label: "Ranking de vendedores", icon: "🏆", roles: ["admin", "treasurer"] },
+    { href: "/ranking", label: "Ranking de cooperadores", icon: "🏆", roles: ["admin", "treasurer"] },
     { href: "/relatorios", label: "Relatórios", icon: "📊", roles: ["admin"] },
     { href: "/sorteio", label: "Sorteio", icon: "🎁", roles: ["admin"] },
     { href: "/auditoria", label: "Auditoria", icon: "📜", roles: ["admin"] },

@@ -121,7 +121,7 @@ export default function DetailDrawer({
                 <p className="text-sm text-verde-oliva">{order.customer.congregation.name}</p>
               )}
               {order.seller && (
-                <p className="mt-1 text-sm text-verde-oliva">Vendedor: {order.seller.full_name}</p>
+                <p className="mt-1 text-sm text-verde-oliva">Cooperador: {order.seller.full_name}</p>
               )}
               {order.note && <p className="mt-1 text-sm italic text-verde-oliva">{order.note}</p>}
             </div>

@@ -206,7 +206,7 @@ export default function NumbersScreen({
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por número, comprador ou vendedor"
+          placeholder="Buscar por número, comprador ou cooperador"
           aria-label="Buscar"
           className="tap-target w-full rounded-xl border border-verde-oliva/30 bg-white px-4 py-3 outline-none focus:border-verde-profundo focus:ring-2 focus:ring-verde-profundo/20"
         />

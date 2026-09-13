@@ -105,7 +105,7 @@ export default async function TesourariaPage() {
                         .join(" • ")}
                     </p>
                     <p className="text-xs text-verde-oliva/70">
-                      Vendedor:{" "}
+                      Cooperador:{" "}
                       {(order as unknown as { seller: { full_name: string } | null }).seller?.full_name ?? "-"}
                     </p>
                   </div>

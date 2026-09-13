@@ -25,7 +25,7 @@ export default function ExportCsvButton({ campaignId }: { campaignId: string }) 
       campaign_numbers: { number: number }[];
     }[];
 
-    const header = ["Números", "Comprador", "WhatsApp", "Vendedor", "Status", "Total (R$)", "Data"];
+    const header = ["Números", "Comprador", "WhatsApp", "Cooperador", "Status", "Total (R$)", "Data"];
     const lines = rows.map((r) => [
       r.campaign_numbers.map((n) => formatNumber(n.number)).join(" "),
       r.customer?.name ?? "",

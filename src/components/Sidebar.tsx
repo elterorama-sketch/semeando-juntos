@@ -51,7 +51,7 @@ export default function Sidebar({ role, name }: { role: UserRole; name: string }
       </nav>
       <div className="border-t border-verde-oliva/15 px-2 pt-3 text-xs text-verde-oliva/70">
         <p className="truncate font-medium text-verde-profundo">{name}</p>
-        <p className="capitalize">{role === "admin" ? "administrador" : role === "treasurer" ? "tesoureiro" : "vendedor"}</p>
+        <p className="capitalize">{role === "admin" ? "administrador" : role === "treasurer" ? "tesoureiro" : "cooperador"}</p>
       </div>
     </aside>
   );

@@ -92,7 +92,7 @@ export default function InviteUserForm({ congregations }: { congregations: Congr
 
   return (
     <div className="space-y-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-verde-oliva/10">
-      <h3 className="font-semibold text-verde-profundo">Adicionar vendedor</h3>
+      <h3 className="font-semibold text-verde-profundo">Adicionar cooperador</h3>
       <input
         placeholder="Nome completo"
         value={fullName}
@@ -128,7 +128,7 @@ export default function InviteUserForm({ congregations }: { congregations: Congr
               role === r ? "bg-verde-profundo text-off-white" : "bg-creme text-verde-profundo"
             }`}
           >
-            {r === "seller" ? "Vendedor" : r === "treasurer" ? "Tesoureiro" : "Admin"}
+            {r === "seller" ? "Cooperador" : r === "treasurer" ? "Tesoureiro" : "Admin"}
           </button>
         ))}
       </div>
