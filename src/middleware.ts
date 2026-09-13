@@ -4,8 +4,17 @@ import { NextResponse, type NextRequest } from "next/server";
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 const PUBLIC_PATHS = ["/login"];
+// Routes that authenticate themselves (e.g. a Bearer secret) rather than
+// via the Supabase session cookie -- must bypass the cookie-based check
+// entirely, not just get a nicer error, or a legitimate caller with no
+// session cookie (like Vercel Cron) can never reach the route at all.
+const SELF_AUTHENTICATING_PATHS = ["/api/cron"];
 
 export async function middleware(request: NextRequest) {
+  if (SELF_AUTHENTICATING_PATHS.some((path) => request.nextUrl.pathname.startsWith(path))) {
+    return NextResponse.next();
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
