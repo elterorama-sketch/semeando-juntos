@@ -30,11 +30,20 @@ async function handle(request: Request): Promise<Response> {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
 
-  const { data: callerProfile } = await supabase
+  const { data: callerProfile, error: callerProfileError } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
+  if (callerProfileError) {
+    // A failed lookup here is not the same thing as "not an admin" -- don't
+    // collapse the two, or a transient query error gets misreported as a
+    // permissions error and sends the admin chasing the wrong problem.
+    return NextResponse.json(
+      { error: `Erro ao verificar permissões, tente novamente: ${callerProfileError.message}` },
+      { status: 500 }
+    );
+  }
   if (callerProfile?.role !== "admin") {
     return NextResponse.json({ error: "Apenas administradores podem gerar senhas." }, { status: 403 });
   }
