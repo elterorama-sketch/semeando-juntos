@@ -15,7 +15,7 @@ interface SellDrawerProps {
   promoBuyQuantity: number | null;
   promoFreeQuantity: number | null;
   onClose: () => void;
-  onSold: (result: { numbers: number[]; customerName: string; totalCents: number }) => void;
+  onSold: (result: { numbers: number[]; customerName: string; totalCents: number; paid: boolean }) => void;
 }
 
 // Mirrors the pricing/validation math in reserve_numbers() (see
@@ -94,7 +94,7 @@ export default function SellDrawer({
       throw new Error("validation");
     }
     const supabase = createClient();
-    const { error: rpcError } = await supabase.rpc("reserve_numbers", {
+    const { data, error: rpcError } = await supabase.rpc("reserve_numbers", {
       p_campaign_id: campaignId,
       p_numbers: sorted,
       p_customer_name: name.trim(),
@@ -110,7 +110,24 @@ export default function SellDrawer({
       throw rpcError;
     }
 
-    onSold({ numbers: sorted, customerName: name.trim(), totalCents });
+    // "Vender agora" means the money already changed hands -- confirm the
+    // payment immediately instead of leaving the number sitting as
+    // RESERVADO until someone in the tesouraria gets to it later. The
+    // reservation itself already succeeded at this point either way, so a
+    // failure here (e.g. a permission edge case) is reported softly
+    // instead of rolling back or blocking the flow.
+    let paid = false;
+    const orderId = data?.[0]?.order_id;
+    if (mode === "vender" && orderId) {
+      const { error: confirmError } = await supabase.rpc("confirm_payment", {
+        p_order_id: orderId,
+        p_amount_cents: totalCents,
+        p_method: paymentMethod,
+      });
+      paid = !confirmError;
+    }
+
+    onSold({ numbers: sorted, customerName: name.trim(), totalCents, paid });
   }
 
   const title =

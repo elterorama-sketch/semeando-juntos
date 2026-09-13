@@ -352,6 +352,13 @@ export default function NumbersScreen({
             setMultiMode(false);
             refresh();
             router.replace("/numeros");
+            if (result.paid) {
+              setReceipt({
+                numbers: result.numbers,
+                customerName: result.customerName,
+                totalCents: result.totalCents,
+              });
+            }
           }}
         />
       )}
