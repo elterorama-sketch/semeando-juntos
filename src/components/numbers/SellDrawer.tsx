@@ -17,15 +17,23 @@ interface SellDrawerProps {
   onSold: (result: { numbers: number[]; customerName: string; totalCents: number }) => void;
 }
 
-// Mirrors the pricing math in reserve_numbers() (see
-// supabase/migrations/0008_quantity_promotions.sql) so the seller sees the
-// real total before submitting, not just after the RPC responds.
-function chargeableUnits(count: number, buyQty: number | null, freeQty: number | null): number {
-  if (!buyQty || !freeQty) return count;
+// Mirrors the pricing/validation math in reserve_numbers() (see
+// supabase/migrations/0009_enforce_promo_completion.sql) so the seller
+// sees the real total -- and gets blocked from stopping right at a
+// "compre 10" threshold without its bonus -- before submitting, not only
+// after the RPC rejects it.
+function promoState(
+  count: number,
+  buyQty: number | null,
+  freeQty: number | null
+): { units: number; shortfall: number } {
+  if (!buyQty || !freeQty) return { units: count, shortfall: 0 };
   const groupSize = buyQty + freeQty;
-  const fullGroups = Math.floor(count / groupSize);
-  const remainder = count % groupSize;
-  return fullGroups * buyQty + remainder;
+  const tens = Math.floor(count / buyQty);
+  const requiredMin = tens * groupSize;
+  const shortfall = requiredMin - count;
+  if (shortfall > 0) return { units: count, shortfall };
+  return { units: tens * buyQty + (count - requiredMin), shortfall: 0 };
 }
 
 type Mode = "reservar" | "vender";
@@ -54,14 +62,20 @@ export default function SellDrawer({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("PIX");
   const [error, setError] = useState<string | null>(null);
 
-  const units = chargeableUnits(numbers.length, promoBuyQuantity, promoFreeQuantity);
+  const { units, shortfall } = promoState(numbers.length, promoBuyQuantity, promoFreeQuantity);
   const totalCents = priceCents * units;
   const fullPriceCents = priceCents * numbers.length;
-  const hasDiscount = units < numbers.length;
+  const hasDiscount = shortfall === 0 && units < numbers.length;
   const sorted = [...numbers].sort((a, b) => a - b);
 
   async function handleReserve() {
     setError(null);
+    if (shortfall > 0) {
+      setError(
+        `Selecione mais ${shortfall} número${shortfall > 1 ? "s" : ""} para completar a promoção.`
+      );
+      throw new Error("validation");
+    }
     if (!name.trim()) {
       setError("Informe o nome do comprador.");
       throw new Error("validation");
@@ -146,16 +160,32 @@ export default function SellDrawer({
             : "Já registra a forma de pagamento prevista agora."}
         </p>
 
-        <div className="mb-4 rounded-xl bg-creme p-3 text-center">
-          <p className="text-xs uppercase tracking-wide text-verde-oliva">Total</p>
-          {hasDiscount && (
-            <p className="text-sm text-verde-oliva line-through">{formatCentsBRL(fullPriceCents)}</p>
-          )}
-          <p className="text-2xl font-bold text-verde-profundo">{formatCentsBRL(totalCents)}</p>
-          {hasDiscount && (
-            <p className="mt-1 text-xs font-semibold text-terracota">
-              Promoção aplicada — pagando {units} de {numbers.length} números
-            </p>
+        <div
+          className={`mb-4 rounded-xl p-3 text-center ${shortfall > 0 ? "bg-terracota/10" : "bg-creme"}`}
+        >
+          {shortfall > 0 ? (
+            <>
+              <p className="font-semibold text-terracota">
+                Faltam {shortfall} número{shortfall > 1 ? "s" : ""} para a promoção
+              </p>
+              <p className="mt-1 text-xs text-terracota">
+                Selecionando exatamente {numbers.length}, nenhum número sai de graça. Adicione mais{" "}
+                {shortfall} para completar o grupo e garantir o bônus.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-xs uppercase tracking-wide text-verde-oliva">Total</p>
+              {hasDiscount && (
+                <p className="text-sm text-verde-oliva line-through">{formatCentsBRL(fullPriceCents)}</p>
+              )}
+              <p className="text-2xl font-bold text-verde-profundo">{formatCentsBRL(totalCents)}</p>
+              {hasDiscount && (
+                <p className="mt-1 text-xs font-semibold text-terracota">
+                  Promoção aplicada — pagando {units} de {numbers.length} números
+                </p>
+              )}
+            </>
           )}
         </div>
 
@@ -253,6 +283,7 @@ export default function SellDrawer({
             labelDoing={mode === "reservar" ? "Reservando..." : "Vendendo..."}
             labelDone={mode === "reservar" ? "Reservado ✓" : "Vendido ✓"}
             onAction={handleReserve}
+            disabled={shortfall > 0}
           />
         </div>
       </div>
@@ -272,6 +303,9 @@ function translateError(message: string): string {
   }
   if (message.includes("PERMISSAO_NEGADA")) {
     return "Você não tem permissão para vender números.";
+  }
+  if (message.includes("PROMOCAO_INCOMPLETA")) {
+    return "Selecione mais números para completar a promoção antes de continuar.";
   }
   return "Erro ao salvar. Tente novamente.";
 }
