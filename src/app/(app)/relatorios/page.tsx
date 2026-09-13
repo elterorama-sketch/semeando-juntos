@@ -2,6 +2,7 @@ import { getActiveCampaign, getCurrentProfile } from "@/lib/session";
 import TopBar from "@/components/TopBar";
 import NoPermission from "@/components/NoPermission";
 import ExportCsvButton from "@/components/admin/ExportCsvButton";
+import FinancialReportButton from "@/components/admin/FinancialReportButton";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,17 @@ export default async function RelatoriosPage() {
       <TopBar title="Relatórios" />
       <main className="flex-1 space-y-4 p-4 md:p-6">
         <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-verde-oliva/10">
-          <h3 className="mb-2 font-semibold text-verde-profundo">Exportar vendas</h3>
+          <h3 className="mb-2 font-semibold text-verde-profundo">Relatório contábil-financeiro (PDF)</h3>
+          <p className="mb-3 text-sm text-verde-oliva">
+            Gera um PDF completo com resumo financeiro, gráficos (arrecadação por forma de pagamento e
+            números por status), ranking por cooperador e por congregação, e o extrato completo de
+            pedidos desta campanha.
+          </p>
+          <FinancialReportButton campaign={campaign} />
+        </div>
+
+        <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-verde-oliva/10">
+          <h3 className="mb-2 font-semibold text-verde-profundo">Exportar vendas (CSV)</h3>
           <p className="mb-3 text-sm text-verde-oliva">
             Gera um CSV com todos os pedidos (reservados, pendentes e pagos) desta campanha: números,
             comprador, cooperador, status, valor e data.
@@ -40,7 +51,6 @@ export default async function RelatoriosPage() {
         </div>
         <p className="text-xs text-verde-oliva/70">
           Consulte também Ranking (vendas por cooperador) e Tesouraria (pendências e arrecadação).
-          Exportação em PDF está prevista para uma próxima versão.
         </p>
       </main>
     </>
