@@ -342,6 +342,8 @@ export default function NumbersScreen({
           priceCents={campaign.price_cents}
           numbers={sellNumbers}
           congregations={congregations}
+          promoBuyQuantity={campaign.promo_buy_quantity}
+          promoFreeQuantity={campaign.promo_free_quantity}
           onClose={() => setSellNumbers(null)}
           onSold={(result) => {
             setSellNumbers(null);

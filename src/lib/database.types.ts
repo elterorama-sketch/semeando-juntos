@@ -41,6 +41,8 @@ export interface Campaign {
   status: CampaignStatus;
   reservation_hours: number | null;
   payment_due_date: string | null;
+  promo_buy_quantity: number | null;
+  promo_free_quantity: number | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;

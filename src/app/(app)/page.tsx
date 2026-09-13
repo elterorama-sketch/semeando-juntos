@@ -105,6 +105,12 @@ export default async function DashboardPage() {
           </div>
         )}
 
+        {campaign.promo_buy_quantity && campaign.promo_free_quantity && (
+          <div className="rounded-xl bg-terracota/10 p-3 text-center text-sm font-medium text-terracota">
+            🎉 Promoção ativa: compre {campaign.promo_buy_quantity} ganhe {campaign.promo_free_quantity}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {(profile?.role === "admin" || profile?.role === "seller") && (
             <Link

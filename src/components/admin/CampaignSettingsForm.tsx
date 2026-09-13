@@ -24,6 +24,9 @@ export default function CampaignSettingsForm({ campaign }: { campaign: Campaign 
   const [status, setStatus] = useState<CampaignStatus>(campaign.status);
   const [reservationHours, setReservationHours] = useState<number | null>(campaign.reservation_hours);
   const [paymentDueDate, setPaymentDueDate] = useState(campaign.payment_due_date ?? "");
+  const [promoEnabled, setPromoEnabled] = useState(campaign.promo_buy_quantity !== null);
+  const [promoBuy, setPromoBuy] = useState(String(campaign.promo_buy_quantity ?? 10));
+  const [promoFree, setPromoFree] = useState(String(campaign.promo_free_quantity ?? 1));
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
@@ -31,6 +34,13 @@ export default function CampaignSettingsForm({ campaign }: { campaign: Campaign 
     const priceCents = Math.round(parseFloat(priceReais.replace(",", ".")) * 100);
     if (!name.trim() || Number.isNaN(priceCents) || priceCents <= 0) {
       setError("Verifique o nome e o valor por número.");
+      throw new Error("validation");
+    }
+
+    const promoBuyN = parseInt(promoBuy, 10);
+    const promoFreeN = parseInt(promoFree, 10);
+    if (promoEnabled && (Number.isNaN(promoBuyN) || promoBuyN <= 0 || Number.isNaN(promoFreeN) || promoFreeN <= 0)) {
+      setError("Verifique os números da promoção.");
       throw new Error("validation");
     }
 
@@ -45,6 +55,8 @@ export default function CampaignSettingsForm({ campaign }: { campaign: Campaign 
         status,
         reservation_hours: reservationHours,
         payment_due_date: paymentDueDate || null,
+        promo_buy_quantity: promoEnabled ? promoBuyN : null,
+        promo_free_quantity: promoEnabled ? promoFreeN : null,
       })
       .eq("id", campaign.id);
 
@@ -139,6 +151,45 @@ export default function CampaignSettingsForm({ campaign }: { campaign: Campaign 
           Depois dessa data, qualquer reserva pendente da campanha expira automaticamente — mesmo
           que o prazo por número ainda não tenha vencido.
         </p>
+      </Field>
+
+      <Field label="Promoção por quantidade (opcional)">
+        <button
+          type="button"
+          onClick={() => setPromoEnabled((v) => !v)}
+          className={`tap-target w-full rounded-xl py-2 text-sm font-semibold ${
+            promoEnabled ? "bg-verde-profundo text-off-white" : "bg-creme text-verde-profundo"
+          }`}
+        >
+          {promoEnabled ? "Promoção ativada" : "Ativar promoção"}
+        </button>
+        {promoEnabled && (
+          <div className="mt-2 flex items-center gap-2 text-sm text-verde-profundo">
+            <span>Compre</span>
+            <input
+              value={promoBuy}
+              onChange={(e) => setPromoBuy(e.target.value)}
+              inputMode="numeric"
+              className="tap-target w-16 rounded-xl border border-verde-oliva/30 px-2 py-2 text-center outline-none focus:border-verde-profundo"
+            />
+            <span>ganhe</span>
+            <input
+              value={promoFree}
+              onChange={(e) => setPromoFree(e.target.value)}
+              inputMode="numeric"
+              className="tap-target w-16 rounded-xl border border-verde-oliva/30 px-2 py-2 text-center outline-none focus:border-verde-profundo"
+            />
+            <span>grátis</span>
+          </div>
+        )}
+        {promoEnabled && (
+          <p className="mt-1 text-xs text-verde-oliva">
+            Ex: compre {promoBuy || "10"} ganhe {promoFree || "1"} — a cada grupo de{" "}
+            {(parseInt(promoBuy || "0", 10) || 0) + (parseInt(promoFree || "0", 10) || 0)} números na
+            mesma venda, o comprador paga só {promoBuy || "10"}. Números fora de um grupo completo
+            saem no preço cheio.
+          </p>
+        )}
       </Field>
 
       {error && <p className="text-sm font-medium text-terracota">{error}</p>}

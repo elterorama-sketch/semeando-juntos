@@ -11,8 +11,21 @@ interface SellDrawerProps {
   priceCents: number;
   numbers: number[];
   congregations: Congregation[];
+  promoBuyQuantity: number | null;
+  promoFreeQuantity: number | null;
   onClose: () => void;
   onSold: (result: { numbers: number[]; customerName: string; totalCents: number }) => void;
+}
+
+// Mirrors the pricing math in reserve_numbers() (see
+// supabase/migrations/0008_quantity_promotions.sql) so the seller sees the
+// real total before submitting, not just after the RPC responds.
+function chargeableUnits(count: number, buyQty: number | null, freeQty: number | null): number {
+  if (!buyQty || !freeQty) return count;
+  const groupSize = buyQty + freeQty;
+  const fullGroups = Math.floor(count / groupSize);
+  const remainder = count % groupSize;
+  return fullGroups * buyQty + remainder;
 }
 
 type Mode = "reservar" | "vender";
@@ -28,6 +41,8 @@ export default function SellDrawer({
   priceCents,
   numbers,
   congregations,
+  promoBuyQuantity,
+  promoFreeQuantity,
   onClose,
   onSold,
 }: SellDrawerProps) {
@@ -39,7 +54,10 @@ export default function SellDrawer({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("PIX");
   const [error, setError] = useState<string | null>(null);
 
-  const totalCents = priceCents * numbers.length;
+  const units = chargeableUnits(numbers.length, promoBuyQuantity, promoFreeQuantity);
+  const totalCents = priceCents * units;
+  const fullPriceCents = priceCents * numbers.length;
+  const hasDiscount = units < numbers.length;
   const sorted = [...numbers].sort((a, b) => a - b);
 
   async function handleReserve() {
@@ -130,7 +148,15 @@ export default function SellDrawer({
 
         <div className="mb-4 rounded-xl bg-creme p-3 text-center">
           <p className="text-xs uppercase tracking-wide text-verde-oliva">Total</p>
+          {hasDiscount && (
+            <p className="text-sm text-verde-oliva line-through">{formatCentsBRL(fullPriceCents)}</p>
+          )}
           <p className="text-2xl font-bold text-verde-profundo">{formatCentsBRL(totalCents)}</p>
+          {hasDiscount && (
+            <p className="mt-1 text-xs font-semibold text-terracota">
+              Promoção aplicada — pagando {units} de {numbers.length} números
+            </p>
+          )}
         </div>
 
         <div className="space-y-3">
