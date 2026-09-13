@@ -15,6 +15,8 @@ interface SellDrawerProps {
   onSold: (result: { numbers: number[]; customerName: string; totalCents: number }) => void;
 }
 
+type Mode = "reservar" | "vender";
+
 const PAYMENT_OPTIONS: { value: PaymentMethod; label: string }[] = [
   { value: "PIX", label: "PIX" },
   { value: "DINHEIRO", label: "Dinheiro" },
@@ -29,6 +31,7 @@ export default function SellDrawer({
   onClose,
   onSold,
 }: SellDrawerProps) {
+  const [mode, setMode] = useState<Mode>("reservar");
   const [name, setName] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [note, setNote] = useState("");
@@ -53,7 +56,7 @@ export default function SellDrawer({
       p_customer_whatsapp: whatsapp.trim() || null,
       p_note: note.trim() || null,
       p_congregation_id: congregationId || null,
-      p_payment_method: paymentMethod,
+      p_payment_method: mode === "vender" ? paymentMethod : null,
     });
 
     if (rpcError) {
@@ -67,6 +70,15 @@ export default function SellDrawer({
 
   const title =
     numbers.length === 1 ? `Número ${formatNumber(sorted[0])}` : `${numbers.length} números selecionados`;
+
+  const actionLabel =
+    mode === "reservar"
+      ? numbers.length === 1
+        ? `Reservar ${formatNumber(sorted[0])}`
+        : `Reservar ${numbers.length} números`
+      : numbers.length === 1
+        ? `Vender ${formatNumber(sorted[0])}`
+        : `Vender ${numbers.length} números`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 md:items-center">
@@ -89,6 +101,32 @@ export default function SellDrawer({
             ✕
           </button>
         </div>
+
+        <div className="mb-4 flex rounded-xl bg-creme p-1">
+          <button
+            type="button"
+            onClick={() => setMode("reservar")}
+            className={`tap-target flex-1 rounded-lg py-2 text-sm font-semibold ${
+              mode === "reservar" ? "bg-verde-profundo text-off-white" : "text-verde-profundo"
+            }`}
+          >
+            Reservar
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("vender")}
+            className={`tap-target flex-1 rounded-lg py-2 text-sm font-semibold ${
+              mode === "vender" ? "bg-verde-profundo text-off-white" : "text-verde-profundo"
+            }`}
+          >
+            Vender agora
+          </button>
+        </div>
+        <p className="mb-4 text-xs text-verde-oliva">
+          {mode === "reservar"
+            ? "Segura o número para o comprador; a forma de pagamento fica em aberto até confirmar depois."
+            : "Já registra a forma de pagamento prevista agora."}
+        </p>
 
         <div className="mb-4 rounded-xl bg-creme p-3 text-center">
           <p className="text-xs uppercase tracking-wide text-verde-oliva">Total</p>
@@ -142,25 +180,27 @@ export default function SellDrawer({
             </div>
           )}
 
-          <div>
-            <p className="mb-1 text-sm font-medium text-verde-profundo">Forma de pagamento prevista</p>
-            <div className="flex gap-2">
-              {PAYMENT_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setPaymentMethod(opt.value)}
-                  className={`tap-target flex-1 rounded-xl py-2 text-sm font-semibold ${
-                    paymentMethod === opt.value
-                      ? "bg-verde-profundo text-off-white"
-                      : "bg-creme text-verde-profundo"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+          {mode === "vender" && (
+            <div>
+              <p className="mb-1 text-sm font-medium text-verde-profundo">Forma de pagamento</p>
+              <div className="flex gap-2">
+                {PAYMENT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setPaymentMethod(opt.value)}
+                    className={`tap-target flex-1 rounded-xl py-2 text-sm font-semibold ${
+                      paymentMethod === opt.value
+                        ? "bg-verde-profundo text-off-white"
+                        : "bg-creme text-verde-profundo"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div>
             <label htmlFor="note" className="mb-1 block text-sm font-medium text-verde-profundo">
@@ -183,9 +223,9 @@ export default function SellDrawer({
 
         <div className="mt-5">
           <ActionButton
-            label={numbers.length === 1 ? `Reservar ${formatNumber(sorted[0])}` : `Vender ${numbers.length} números`}
-            labelDoing="Reservando..."
-            labelDone="Reservado ✓"
+            label={actionLabel}
+            labelDoing={mode === "reservar" ? "Reservando..." : "Vendendo..."}
+            labelDone={mode === "reservar" ? "Reservado ✓" : "Vendido ✓"}
             onAction={handleReserve}
           />
         </div>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCampaign, getCurrentProfile } from "@/lib/session";
-import { formatCentsBRL } from "@/lib/format";
+import { formatCentsBRL, formatDate } from "@/lib/format";
 import TopBar from "@/components/TopBar";
 import type { NumberStatus } from "@/lib/database.types";
 
@@ -98,6 +98,12 @@ export default async function DashboardPage() {
             />
           </div>
         </div>
+
+        {campaign.payment_due_date && (
+          <div className="rounded-xl bg-creme p-3 text-center text-sm font-medium text-verde-profundo">
+            Prazo final de pagamento: {formatDate(campaign.payment_due_date)}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {(profile?.role === "admin" || profile?.role === "seller") && (

@@ -40,6 +40,7 @@ export interface Campaign {
   draw_date: string | null;
   status: CampaignStatus;
   reservation_hours: number | null;
+  payment_due_date: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;

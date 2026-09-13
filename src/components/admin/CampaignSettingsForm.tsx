@@ -23,6 +23,7 @@ export default function CampaignSettingsForm({ campaign }: { campaign: Campaign 
   const [drawDate, setDrawDate] = useState(campaign.draw_date ?? "");
   const [status, setStatus] = useState<CampaignStatus>(campaign.status);
   const [reservationHours, setReservationHours] = useState<number | null>(campaign.reservation_hours);
+  const [paymentDueDate, setPaymentDueDate] = useState(campaign.payment_due_date ?? "");
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
@@ -43,6 +44,7 @@ export default function CampaignSettingsForm({ campaign }: { campaign: Campaign 
         draw_date: drawDate || null,
         status,
         reservation_hours: reservationHours,
+        payment_due_date: paymentDueDate || null,
       })
       .eq("id", campaign.id);
 
@@ -109,7 +111,7 @@ export default function CampaignSettingsForm({ campaign }: { campaign: Campaign 
         </div>
       </Field>
 
-      <Field label="Prazo de reserva">
+      <Field label="Prazo de reserva (por número)">
         <div className="flex flex-wrap gap-2">
           {RESERVATION_OPTIONS.map((opt) => (
             <button
@@ -124,6 +126,19 @@ export default function CampaignSettingsForm({ campaign }: { campaign: Campaign 
             </button>
           ))}
         </div>
+      </Field>
+
+      <Field label="Data máxima de pagamento (opcional)">
+        <input
+          type="date"
+          value={paymentDueDate}
+          onChange={(e) => setPaymentDueDate(e.target.value)}
+          className="tap-target w-full rounded-xl border border-verde-oliva/30 px-4 py-3 outline-none focus:border-verde-profundo"
+        />
+        <p className="mt-1 text-xs text-verde-oliva">
+          Depois dessa data, qualquer reserva pendente da campanha expira automaticamente — mesmo
+          que o prazo por número ainda não tenha vencido.
+        </p>
       </Field>
 
       {error && <p className="text-sm font-medium text-terracota">{error}</p>}
