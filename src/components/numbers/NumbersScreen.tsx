@@ -341,6 +341,7 @@ export default function NumbersScreen({
           campaignId={campaign.id}
           priceCents={campaign.price_cents}
           numbers={sellNumbers}
+          availableNumbers={numbers.filter((n) => n.status === "DISPONIVEL").map((n) => n.number)}
           congregations={congregations}
           promoBuyQuantity={campaign.promo_buy_quantity}
           promoFreeQuantity={campaign.promo_free_quantity}

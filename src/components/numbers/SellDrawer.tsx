@@ -10,6 +10,7 @@ interface SellDrawerProps {
   campaignId: string;
   priceCents: number;
   numbers: number[];
+  availableNumbers: number[];
   congregations: Congregation[];
   promoBuyQuantity: number | null;
   promoFreeQuantity: number | null;
@@ -48,12 +49,18 @@ export default function SellDrawer({
   campaignId,
   priceCents,
   numbers,
+  availableNumbers,
   congregations,
   promoBuyQuantity,
   promoFreeQuantity,
   onClose,
   onSold,
 }: SellDrawerProps) {
+  // Owned here (not derived straight from the `numbers` prop) so the seller
+  // can add more numbers via the picker overlay below without closing this
+  // drawer and losing everything already typed into the form.
+  const [selectedNumbers, setSelectedNumbers] = useState<number[]>(numbers);
+  const [showPicker, setShowPicker] = useState(false);
   const [mode, setMode] = useState<Mode>("reservar");
   const [name, setName] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -62,11 +69,17 @@ export default function SellDrawer({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("PIX");
   const [error, setError] = useState<string | null>(null);
 
-  const { units, shortfall } = promoState(numbers.length, promoBuyQuantity, promoFreeQuantity);
+  const { units, shortfall } = promoState(selectedNumbers.length, promoBuyQuantity, promoFreeQuantity);
   const totalCents = priceCents * units;
-  const fullPriceCents = priceCents * numbers.length;
-  const hasDiscount = shortfall === 0 && units < numbers.length;
-  const sorted = [...numbers].sort((a, b) => a - b);
+  const fullPriceCents = priceCents * selectedNumbers.length;
+  const hasDiscount = shortfall === 0 && units < selectedNumbers.length;
+  const sorted = [...selectedNumbers].sort((a, b) => a - b);
+
+  function toggleNumber(n: number) {
+    setSelectedNumbers((prev) =>
+      prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n]
+    );
+  }
 
   async function handleReserve() {
     setError(null);
@@ -101,29 +114,24 @@ export default function SellDrawer({
   }
 
   const title =
-    numbers.length === 1 ? `Número ${formatNumber(sorted[0])}` : `${numbers.length} números selecionados`;
+    selectedNumbers.length === 1
+      ? `Número ${formatNumber(sorted[0])}`
+      : `${selectedNumbers.length} números selecionados`;
 
   const actionLabel =
     mode === "reservar"
-      ? numbers.length === 1
+      ? selectedNumbers.length === 1
         ? `Reservar ${formatNumber(sorted[0])}`
-        : `Reservar ${numbers.length} números`
-      : numbers.length === 1
+        : `Reservar ${selectedNumbers.length} números`
+      : selectedNumbers.length === 1
         ? `Vender ${formatNumber(sorted[0])}`
-        : `Vender ${numbers.length} números`;
+        : `Vender ${selectedNumbers.length} números`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 md:items-center">
       <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-off-white p-5 md:rounded-2xl">
         <div className="mb-4 flex items-start justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-verde-profundo">{title}</h2>
-            {numbers.length > 1 && (
-              <p className="mt-1 text-sm text-verde-oliva">
-                {sorted.map((n) => formatNumber(n)).join(" • ")}
-              </p>
-            )}
-          </div>
+          <h2 className="text-lg font-bold text-verde-profundo">{title}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -131,6 +139,27 @@ export default function SellDrawer({
             className="tap-target rounded-full text-xl text-verde-oliva hover:bg-creme"
           >
             ✕
+          </button>
+        </div>
+
+        <div className="mb-4 flex flex-wrap gap-1.5">
+          {sorted.map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => toggleNumber(n)}
+              aria-label={`Remover número ${formatNumber(n)}`}
+              className="tap-target flex items-center gap-1 rounded-full bg-creme px-3 py-1.5 text-sm font-semibold text-verde-profundo"
+            >
+              {formatNumber(n)} <span aria-hidden>✕</span>
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setShowPicker(true)}
+            className="tap-target rounded-full bg-verde-oliva/15 px-3 py-1.5 text-sm font-semibold text-verde-profundo"
+          >
+            + Adicionar número
           </button>
         </div>
 
@@ -168,10 +197,13 @@ export default function SellDrawer({
               <p className="font-semibold text-terracota">
                 Faltam {shortfall} número{shortfall > 1 ? "s" : ""} para a promoção
               </p>
-              <p className="mt-1 text-xs text-terracota">
-                Selecionando exatamente {numbers.length}, nenhum número sai de graça. Adicione mais{" "}
-                {shortfall} para completar o grupo e garantir o bônus.
-              </p>
+              <button
+                type="button"
+                onClick={() => setShowPicker(true)}
+                className="tap-target mt-2 rounded-xl bg-terracota px-4 py-2 text-sm font-semibold text-off-white"
+              >
+                Escolher mais números
+              </button>
             </>
           ) : (
             <>
@@ -182,7 +214,7 @@ export default function SellDrawer({
               <p className="text-2xl font-bold text-verde-profundo">{formatCentsBRL(totalCents)}</p>
               {hasDiscount && (
                 <p className="mt-1 text-xs font-semibold text-terracota">
-                  Promoção aplicada — pagando {units} de {numbers.length} números
+                  Promoção aplicada — pagando {units} de {selectedNumbers.length} números
                 </p>
               )}
             </>
@@ -286,6 +318,79 @@ export default function SellDrawer({
             disabled={shortfall > 0}
           />
         </div>
+      </div>
+
+      {showPicker && (
+        <NumberPicker
+          availableNumbers={availableNumbers}
+          selectedNumbers={selectedNumbers}
+          onToggle={toggleNumber}
+          onClose={() => setShowPicker(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function NumberPicker({
+  availableNumbers,
+  selectedNumbers,
+  onToggle,
+  onClose,
+}: {
+  availableNumbers: number[];
+  selectedNumbers: number[];
+  onToggle: (n: number) => void;
+  onClose: () => void;
+}) {
+  const sortedAvailable = [...availableNumbers].sort((a, b) => a - b);
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 md:items-center">
+      <div className="flex max-h-[85vh] w-full max-w-md flex-col rounded-t-2xl bg-off-white p-5 md:rounded-2xl">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-lg font-bold text-verde-profundo">Escolher números</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar"
+            className="tap-target rounded-full text-xl text-verde-oliva hover:bg-creme"
+          >
+            ✕
+          </button>
+        </div>
+        <p className="mb-3 text-sm text-verde-oliva">{selectedNumbers.length} selecionado(s)</p>
+        <div className="grid grid-cols-5 gap-2 overflow-y-auto pb-2 sm:grid-cols-6">
+          {sortedAvailable.map((n) => {
+            const isSelected = selectedNumbers.includes(n);
+            return (
+              <button
+                key={n}
+                type="button"
+                onClick={() => onToggle(n)}
+                aria-pressed={isSelected}
+                className={`tap-target flex aspect-square items-center justify-center rounded-xl text-sm font-bold ${
+                  isSelected
+                    ? "bg-verde-profundo text-off-white"
+                    : "bg-creme text-verde-profundo"
+                }`}
+              >
+                {formatNumber(n)}
+              </button>
+            );
+          })}
+          {sortedAvailable.length === 0 && (
+            <p className="col-span-5 py-6 text-center text-sm text-verde-oliva sm:col-span-6">
+              Nenhum número disponível.
+            </p>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="tap-target mt-3 w-full rounded-xl bg-verde-profundo py-3 font-semibold uppercase tracking-wide text-off-white"
+        >
+          Concluir
+        </button>
       </div>
     </div>
   );
