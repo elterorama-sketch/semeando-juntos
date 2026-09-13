@@ -49,7 +49,7 @@ async function handle(request: Request): Promise<Response> {
   const { error: deleteError } = await admin.auth.admin.deleteUser(userId);
   if (deleteError) {
     const message = /foreign key|violat/i.test(deleteError.message)
-      ? "Esse usuário tem vendas ou pagamentos registrados e não pode ser excluído. Desative-o em vez disso."
+      ? "Esse usuário está vinculado a registros do sistema (vendas, pagamentos, clientes cadastrados, sorteios, etc.) e não pode ser excluído. Desative-o em vez disso."
       : deleteError.message;
     return NextResponse.json({ error: message }, { status: 400 });
   }
