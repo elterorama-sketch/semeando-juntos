@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getActiveCampaign, getCurrentProfile } from "@/lib/session";
 import { formatCentsBRL, formatDate } from "@/lib/format";
 import TopBar from "@/components/TopBar";
+import PromoShareButton from "@/components/PromoShareButton";
 import type { NumberStatus } from "@/lib/database.types";
 
 export const dynamic = "force-dynamic";
@@ -31,10 +32,14 @@ export default async function DashboardPage() {
   }
 
   const supabase = await createClient();
-  const { data: numbers } = await supabase
-    .from("campaign_numbers")
-    .select("status")
-    .eq("campaign_id", campaign.id);
+  const [{ data: numbers }, { data: prizes }] = await Promise.all([
+    supabase.from("campaign_numbers").select("status").eq("campaign_id", campaign.id),
+    supabase
+      .from("campaign_prizes")
+      .select("position, title")
+      .eq("campaign_id", campaign.id)
+      .order("position"),
+  ]);
 
   const counts: Record<NumberStatus, number> = {
     DISPONIVEL: 0,
@@ -133,6 +138,16 @@ export default async function DashboardPage() {
             >
               Pagamentos
             </Link>
+          )}
+          {(profile?.role === "admin" || profile?.role === "seller") && (
+            <PromoShareButton
+              campaignName={campaign.name}
+              priceCents={campaign.price_cents}
+              drawDate={campaign.draw_date}
+              prizes={prizes ?? []}
+              promoBuyQuantity={campaign.promo_buy_quantity}
+              promoFreeQuantity={campaign.promo_free_quantity}
+            />
           )}
         </div>
       </main>
