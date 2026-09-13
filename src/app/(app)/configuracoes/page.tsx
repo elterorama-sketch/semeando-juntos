@@ -8,6 +8,7 @@ import InviteUserForm from "@/components/admin/InviteUserForm";
 import UsersList from "@/components/admin/UsersList";
 import NewCampaignForm from "@/components/admin/NewCampaignForm";
 import CongregationsEditor from "@/components/admin/CongregationsEditor";
+import ChangePasswordForm from "@/components/ChangePasswordForm";
 import type { Campaign, CampaignPrize, Congregation, Profile } from "@/lib/database.types";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +46,8 @@ export default async function ConfiguracoesPage() {
     <>
       <TopBar title="Configurações" />
       <main className="flex-1 space-y-4 p-4 md:p-6">
+        <ChangePasswordForm />
+
         {currentCampaign ? (
           <>
             <CampaignSettingsForm campaign={currentCampaign} />
