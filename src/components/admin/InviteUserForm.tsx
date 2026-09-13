@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import ActionButton from "@/components/ActionButton";
 import type { Congregation, UserRole } from "@/lib/database.types";
 
+const SITE_URL = "https://semeando-juntos.vercel.app";
+
 export default function InviteUserForm({ congregations }: { congregations: Congregation[] }) {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
@@ -45,7 +47,20 @@ export default function InviteUserForm({ congregations }: { congregations: Congr
   }
 
   const shareText = created
-    ? `Acesso ao app Semeando Juntos, ${created.name}:\nLogin: ${created.login}\nSenha: ${created.password}`
+    ? [
+        `🌱 Bem-vindo(a) ao Semeando Juntos, ${created.name}!`,
+        "Seu acesso foi criado:",
+        `Login: ${created.login}`,
+        `Senha provisória: ${created.password}`,
+        "",
+        `Acesse pelo link: ${SITE_URL}`,
+        "",
+        "Recomendamos trocar essa senha assim que entrar:",
+        "1. Faça login com os dados acima.",
+        "2. Toque em \"Mais\" no menu inferior.",
+        "3. Toque em \"Alterar senha\".",
+        "4. Digite uma senha nova e confirme.",
+      ].join("\n")
     : "";
 
   async function handleCopy() {
@@ -59,15 +74,19 @@ export default function InviteUserForm({ congregations }: { congregations: Congr
       <div className="space-y-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-verde-oliva/10">
         <h3 className="font-semibold text-verde-profundo">Usuário criado ✓</h3>
         <p className="text-sm text-verde-oliva">
-          Envie esses dados de acesso para {created.name} (por WhatsApp, por exemplo). Essa senha só
-          aparece aqui uma vez.
+          Envie esses dados de acesso para {created.name} (por WhatsApp, por exemplo). Essa senha
+          provisória só aparece aqui uma vez.
         </p>
         <div className="rounded-xl bg-creme p-3 text-sm">
           <p>
             <span className="font-semibold text-verde-profundo">Login:</span> {created.login}
           </p>
           <p>
-            <span className="font-semibold text-verde-profundo">Senha:</span> {created.password}
+            <span className="font-semibold text-verde-profundo">Senha provisória:</span>{" "}
+            {created.password}
+          </p>
+          <p>
+            <span className="font-semibold text-verde-profundo">Acesse em:</span> {SITE_URL}
           </p>
         </div>
         <div className="space-y-2">

@@ -21,6 +21,8 @@ export default function UsersList({
   const [revealedId, setRevealedId] = useState<string | null>(null);
   const [revealed, setRevealed] = useState<{ login: string; password: string } | null>(null);
   const [revealError, setRevealError] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const congregationName = (id: string | null) => congregations.find((c) => c.id === id)?.name;
 
   async function toggleActive(user: Profile) {
@@ -49,6 +51,22 @@ export default function UsersList({
     }
     setRevealedId(user.id);
     setRevealed({ login: json.login, password: json.password });
+  }
+
+  async function handleDelete(user: Profile) {
+    setDeleteError(null);
+    const res = await fetch("/api/admin/delete-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user.id }),
+    });
+    const json = await res.json().catch(() => ({ error: "Erro inesperado do servidor." }));
+    if (!res.ok) {
+      setDeleteError(json.error ?? "Erro ao excluir usuário.");
+      throw new Error(json.error);
+    }
+    setConfirmDeleteId(null);
+    router.refresh();
   }
 
   return (
@@ -106,21 +124,61 @@ export default function UsersList({
                     onAction={() => toggleActive(u)}
                   />
                 </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteError(null);
+                    setConfirmDeleteId(u.id);
+                  }}
+                  className="tap-target rounded-xl bg-white px-3 py-2 text-sm font-semibold text-terracota"
+                >
+                  Excluir
+                </button>
               </div>
+              {confirmDeleteId === u.id && (
+                <div className="space-y-2 rounded-xl bg-terracota/10 p-3">
+                  <p className="text-sm font-medium text-terracota">
+                    Excluir {u.full_name} definitivamente? Essa ação não pode ser desfeita. Se esse
+                    usuário já tiver vendas registradas, use &quot;Desativar&quot; em vez disso.
+                  </p>
+                  {deleteError && (
+                    <p className="text-sm font-medium text-terracota">{deleteError}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="tap-target flex-1 rounded-xl bg-white py-2 text-sm font-semibold text-verde-profundo"
+                    >
+                      Cancelar
+                    </button>
+                    <div className="flex-1">
+                      <ActionButton
+                        label="Confirmar exclusão"
+                        labelDoing="Excluindo..."
+                        labelDone="Excluído ✓"
+                        variant="danger"
+                        fullWidth
+                        onAction={() => handleDelete(u)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
               {revealedId === u.id && (
                 <div className="rounded-xl bg-white p-3 text-sm">
                   {revealed ? (
                     <>
                       <p className="text-xs text-verde-oliva">
-                        Nova senha gerada para {u.full_name}. Envie por WhatsApp -- ela substitui a
-                        anterior e só aparece aqui agora.
+                        Nova senha provisória gerada para {u.full_name}. Envie por WhatsApp -- ela
+                        substitui a anterior e só aparece aqui agora.
                       </p>
                       <p className="mt-1">
                         <span className="font-semibold text-verde-profundo">Login:</span>{" "}
                         {revealed.login}
                       </p>
                       <p>
-                        <span className="font-semibold text-verde-profundo">Senha:</span>{" "}
+                        <span className="font-semibold text-verde-profundo">Senha provisória:</span>{" "}
                         {revealed.password}
                       </p>
                     </>
