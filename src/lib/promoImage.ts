@@ -10,6 +10,9 @@ export interface PromoImageData {
   promoBuyQuantity: number | null;
   promoFreeQuantity: number | null;
   leaders: CampaignLeader[];
+  // Overrides the CTA headline ("Colabore e concorra a prêmios!" etc.) --
+  // lets the poster match whichever text sugestão is currently selected.
+  headline?: string | null;
 }
 
 const COLORS = {
@@ -67,15 +70,44 @@ export async function generatePromoImage(data: PromoImageData): Promise<Blob> {
   const LEADERS_CARD_H = leaders.length > 0 ? 90 + leaderRows * 66 + 20 : 130;
   const prizeLines = data.prizes.slice(0, 4);
   const PRIZES_CARD_H = 90 + prizeLines.length * 64 + (data.drawDate ? 70 : 20);
-  const CONGRESS_CARD_H = 150;
+  const cardW = WIDTH - 160;
+  const hasPromo = data.promoBuyQuantity && data.promoFreeQuantity;
+  const headlineText =
+    data.headline ??
+    (hasPromo
+      ? `Compre ${data.promoBuyQuantity} ganhe ${data.promoFreeQuantity}!`
+      : "Colabore e concorra a prêmios!");
+
+  // Measuring pass: text metrics need a 2D context, but the canvas height
+  // depends on how many lines that text wraps into -- so measure on a
+  // throwaway canvas before sizing the real one.
+  const measureCanvas = document.createElement("canvas");
+  measureCanvas.width = WIDTH;
+  measureCanvas.height = 10;
+  const mctx = measureCanvas.getContext("2d");
+  if (!mctx) throw new Error("Canvas não suportado neste dispositivo.");
+
+  mctx.font = "800 54px system-ui, sans-serif";
+  const nameLines = wrapText(mctx, data.campaignName.toUpperCase(), WIDTH - 140);
+
+  mctx.font = "800 34px system-ui, sans-serif";
+  const headlineLines = wrapText(mctx, headlineText, WIDTH - 200);
+
+  mctx.font = "800 28px system-ui, sans-serif";
+  const congressTitleLines = wrapText(mctx, VAROES_CONGRESS.title, cardW - 80);
+
+  const NAME_H = nameLines.length * 60;
+  const HEADLINE_H = 60 + Math.max(0, headlineLines.length - 1) * 46;
+  const CONGRESS_CARD_H = 128 + congressTitleLines.length * 34;
+
   const HEIGHT =
     100 +
     60 +
-    60 * 2 +
+    NAME_H +
     20 +
     4 +
     50 +
-    60 +
+    HEADLINE_H +
     60 +
     PRIZES_CARD_H +
     60 +
@@ -119,7 +151,6 @@ export async function generatePromoImage(data: PromoImageData): Promise<Blob> {
 
   ctx.fillStyle = COLORS.creme;
   ctx.font = "800 54px system-ui, sans-serif";
-  const nameLines = wrapText(ctx, data.campaignName.toUpperCase(), WIDTH - 140);
   for (const line of nameLines) {
     ctx.fillText(line, centerX, y);
     y += 60;
@@ -135,16 +166,11 @@ export async function generatePromoImage(data: PromoImageData): Promise<Blob> {
   y += 50;
 
   ctx.fillStyle = COLORS.terracota;
-  ctx.font = "700 40px system-ui, sans-serif";
-  const hasPromo = data.promoBuyQuantity && data.promoFreeQuantity;
-  ctx.fillText(
-    hasPromo
-      ? `Compre ${data.promoBuyQuantity} ganhe ${data.promoFreeQuantity}!`
-      : "Colabore e concorra a prêmios!",
-    centerX,
-    y
-  );
-  y += 60;
+  ctx.font = "800 34px system-ui, sans-serif";
+  headlineLines.forEach((line, i) => {
+    ctx.fillText(line, centerX, y + i * 46);
+  });
+  y += HEADLINE_H;
 
   ctx.fillStyle = COLORS.offWhite;
   ctx.font = "600 30px system-ui, sans-serif";
@@ -153,7 +179,6 @@ export async function generatePromoImage(data: PromoImageData): Promise<Blob> {
 
   // Prizes card
   const cardX = 80;
-  const cardW = WIDTH - 160;
   ctx.fillStyle = COLORS.offWhite;
   roundedRect(ctx, cardX, y, cardW, PRIZES_CARD_H, 28);
   ctx.fill();
@@ -258,7 +283,6 @@ export async function generatePromoImage(data: PromoImageData): Promise<Blob> {
 
   ctx.fillStyle = COLORS.offWhite;
   ctx.font = "800 28px system-ui, sans-serif";
-  const congressTitleLines = wrapText(ctx, VAROES_CONGRESS.title, cardW - 80);
   congressTitleLines.forEach((line) => {
     ctx.fillText(line, centerX, congY);
     congY += 34;

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { generatePromoImage } from "@/lib/promoImage";
 import type { CampaignLeader } from "@/lib/campaignLeaders";
-import { PROMO_TEMPLATES, pickPromoTemplate } from "@/lib/promoTemplates";
+import { PROMO_TEMPLATES, pickPromoTemplate, pickPosterHeadline } from "@/lib/promoTemplates";
 
 interface PromoShareButtonProps {
   campaignName: string;
@@ -54,6 +54,7 @@ function PromoPreview({
     [campaignName, priceCents, drawDate, prizes, promoBuyQuantity, promoFreeQuantity, leaders]
   );
   const shareText = pickPromoTemplate(templateCtx, templateIndex);
+  const headline = pickPosterHeadline(templateCtx, templateIndex);
 
   function handleNextTemplate() {
     setTemplateIndex((i) => (i + 1) % PROMO_TEMPLATES.length);
@@ -63,6 +64,7 @@ function PromoPreview({
   useEffect(() => {
     let cancelled = false;
     let objectUrl: string | null = null;
+    setPreviewUrl(null);
     generatePromoImage({
       campaignName,
       priceCents,
@@ -71,6 +73,7 @@ function PromoPreview({
       promoBuyQuantity,
       promoFreeQuantity,
       leaders,
+      headline,
     })
       .then((blob) => {
         if (cancelled) return;
@@ -84,8 +87,7 @@ function PromoPreview({
       cancelled = true;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [campaignName, priceCents, drawDate, prizes, promoBuyQuantity, promoFreeQuantity, leaders, headline]);
 
   async function handleShare() {
     setState("generating");
@@ -98,6 +100,7 @@ function PromoPreview({
         promoBuyQuantity,
         promoFreeQuantity,
         leaders,
+        headline,
       });
       const fileName = `${campaignName.replace(/\s+/g, "-").toLowerCase()}-divulgacao.png`;
       const file = new File([blob], fileName, { type: "image/png" });

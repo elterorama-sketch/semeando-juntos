@@ -96,7 +96,7 @@ export const PROMO_TEMPLATES: ((ctx: PromoTemplateContext) => string)[] = [
       ...prizesLines(ctx),
       drawLine(ctx),
       "",
-      `E o melhor: você colabora com o ${VAROES_CONGRESS.title.split("—")[0].trim()}`,
+      `E o melhor: você colabora com o ${VAROES_CONGRESS.title}`,
       `(${VAROES_CONGRESS.dates}, ${VAROES_CONGRESS.location.split("—")[1]?.trim() ?? VAROES_CONGRESS.location}).`,
       "",
       ...leadersBlock(ctx, "📲 Garanta os seus com um cooperador:"),
@@ -109,7 +109,7 @@ export const PROMO_TEMPLATES: ((ctx: PromoTemplateContext) => string)[] = [
       `${formatCentsBRL(ctx.priceCents)} cada` + (promoLine(ctx) ? `, ${promoLine(ctx)}` : "."),
       ...prizesLines(ctx).slice(0, 2),
       "",
-      `Colabore com o ${VAROES_CONGRESS.title.split("—")[0].trim()}, dias ${VAROES_CONGRESS.dates}.`,
+      `Colabore com o ${VAROES_CONGRESS.title}, dias ${VAROES_CONGRESS.dates}.`,
       "",
       ...leadersBlock(ctx, "Fala com um cooperador e participa também! 📲"),
     ]),
@@ -121,7 +121,7 @@ export const PROMO_TEMPLATES: ((ctx: PromoTemplateContext) => string)[] = [
       ...prizesLines(ctx),
       `Número por ${formatCentsBRL(ctx.priceCents)}` + (promoLine(ctx) ? `, ${promoLine(ctx)}` : "."),
       "",
-      `Não perde essa — colabore com o ${VAROES_CONGRESS.title.split("—")[0].trim()} (${VAROES_CONGRESS.dates}).`,
+      `Não perde essa — colabore com o ${VAROES_CONGRESS.title} (${VAROES_CONGRESS.dates}).`,
       "",
       ...leadersBlock(ctx, "Fala com um cooperador pelo WhatsApp hoje mesmo! 📲"),
     ]),
@@ -134,7 +134,7 @@ export const PROMO_TEMPLATES: ((ctx: PromoTemplateContext) => string)[] = [
         (promoLine(ctx) ? `, ${promoLine(ctx)}` : "."),
       ...prizesLines(ctx).slice(0, 2),
       "",
-      `Colabore com o ${VAROES_CONGRESS.title.split("—")[0].trim()}`,
+      `Colabore com o ${VAROES_CONGRESS.title}`,
       `— tema "${VAROES_CONGRESS.theme}", ${VAROES_CONGRESS.dates}.`,
       "",
       ...leadersBlock(ctx, "👉 Procure um cooperador e faça parte dessa semeadura:"),
@@ -159,7 +159,7 @@ export const PROMO_TEMPLATES: ((ctx: PromoTemplateContext) => string)[] = [
       `Número por ${formatCentsBRL(ctx.priceCents)}` + (promoLine(ctx) ? ` (${promoLine(ctx)})` : "."),
       drawLine(ctx),
       "",
-      `E você colabora com o ${VAROES_CONGRESS.title.split("—")[0].trim()}!`,
+      `E você colabora com o ${VAROES_CONGRESS.title}!`,
       "",
       ...leadersBlock(ctx, "Garanta o seu com um cooperador! 📲"),
     ]),
@@ -181,4 +181,27 @@ export const PROMO_TEMPLATES: ((ctx: PromoTemplateContext) => string)[] = [
 export function pickPromoTemplate(ctx: PromoTemplateContext, index: number): string {
   const i = ((index % PROMO_TEMPLATES.length) + PROMO_TEMPLATES.length) % PROMO_TEMPLATES.length;
   return PROMO_TEMPLATES[i](ctx);
+}
+
+// Poster headline (short CTA line) matching the tone of each text sugestão
+// above, index-for-index -- keeps "Ver outra sugestão" changing the image
+// too, not just the text. `null` keeps the poster's own default headline
+// (the "compre X ganhe Y" / "colabore e concorra" line).
+export const POSTER_HEADLINES: ((ctx: PromoTemplateContext) => string | null)[] = [
+  () => null,
+  () => "⏰ Os números estão acabando!",
+  () => "Cada número é uma semente! 🌱",
+  () => null,
+  () => "Já pegou o seu número? 👀",
+  () => "📅 Faltam poucas semanas!",
+  () => "Colabore com o Congresso! 🙌",
+  () => null,
+  () => "🎁 Prêmios em jogo!",
+  () => "Vem fazer parte dessa campanha! 🌱",
+];
+
+export function pickPosterHeadline(ctx: PromoTemplateContext, index: number): string | null {
+  const i =
+    ((index % POSTER_HEADLINES.length) + POSTER_HEADLINES.length) % POSTER_HEADLINES.length;
+  return POSTER_HEADLINES[i](ctx);
 }
