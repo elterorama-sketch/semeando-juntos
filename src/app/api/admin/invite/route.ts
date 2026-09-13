@@ -33,14 +33,21 @@ export async function POST(request: Request) {
     // hides the real cause behind a generic "ERRO" button. Always answer
     // with JSON so the admin sees an actionable message.
     const message = err instanceof Error ? err.message : "Erro inesperado ao criar usuário.";
-    return NextResponse.json(
-      {
-        error: message.includes("SUPABASE_SERVICE_ROLE_KEY")
-          ? "Configuração do servidor incompleta: falta a chave SUPABASE_SERVICE_ROLE_KEY na Vercel."
-          : message,
-      },
-      { status: 500 }
-    );
+    if (message.includes("SUPABASE_SERVICE_ROLE_KEY")) {
+      // Temporary diagnostic (no secret values, just presence/shape) so the
+      // exact env-var mismatch can be found from the error message itself,
+      // without needing a Vercel dashboard screenshot.
+      const keyLen = process.env.SUPABASE_SERVICE_ROLE_KEY?.length ?? 0;
+      return NextResponse.json(
+        {
+          error: `Configuração do servidor incompleta: SUPABASE_SERVICE_ROLE_KEY não chegou a este deployment (ambiente: ${
+            process.env.VERCEL_ENV ?? "desconhecido"
+          }, tamanho lido: ${keyLen}).`,
+        },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
