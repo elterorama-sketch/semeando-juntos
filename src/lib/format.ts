@@ -19,9 +19,10 @@ export function formatDateTime(iso: string | null): string {
 
 export function formatDate(iso: string | null): string {
   if (!iso) return "-";
-  return new Date(iso).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  // Date-only strings ("2026-11-15") parse as UTC midnight; formatting them
+  // in a UTC-negative timezone (e.g. Brazil) would otherwise roll back a
+  // day. Parse the parts directly instead of going through Date/UTC.
+  const [year, month, day] = iso.split("-");
+  if (!year || !month || !day) return "-";
+  return `${day}/${month}/${year}`;
 }
