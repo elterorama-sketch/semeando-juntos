@@ -24,6 +24,27 @@ function generatePassword(): string {
 // anywhere in the app -- this is the single path for adding sellers,
 // treasurers or admins, and it requires an authenticated admin caller.
 export async function POST(request: Request) {
+  try {
+    return await handle(request);
+  } catch (err) {
+    // A thrown error here (e.g. createAdminClient() failing because
+    // SUPABASE_SERVICE_ROLE_KEY isn't set) would otherwise surface as a
+    // bare Next.js 500 HTML page, which breaks res.json() client-side and
+    // hides the real cause behind a generic "ERRO" button. Always answer
+    // with JSON so the admin sees an actionable message.
+    const message = err instanceof Error ? err.message : "Erro inesperado ao criar usuário.";
+    return NextResponse.json(
+      {
+        error: message.includes("SUPABASE_SERVICE_ROLE_KEY")
+          ? "Configuração do servidor incompleta: falta a chave SUPABASE_SERVICE_ROLE_KEY na Vercel."
+          : message,
+      },
+      { status: 500 }
+    );
+  }
+}
+
+async function handle(request: Request): Promise<Response> {
   const supabase = await createClient();
   const {
     data: { user },

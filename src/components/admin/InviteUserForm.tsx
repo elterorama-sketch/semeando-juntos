@@ -31,7 +31,7 @@ export default function InviteUserForm({ congregations }: { congregations: Congr
         congregationId: congregationId || null,
       }),
     });
-    const json = await res.json();
+    const json = await res.json().catch(() => ({ error: "Erro inesperado do servidor." }));
     if (!res.ok) {
       setError(json.error ?? "Erro ao criar usuário.");
       throw new Error(json.error);
