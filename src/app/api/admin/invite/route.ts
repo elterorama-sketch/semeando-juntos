@@ -12,11 +12,14 @@ import type { UserRole } from "@/lib/database.types";
 // when no real email is given -- it never needs to receive mail, Supabase
 // auth just requires *some* unique email as the account key.
 function generatePassword(): string {
-  // Avoids visually ambiguous characters (0/O, 1/I/l) since this is meant
-  // to be read aloud or typed from a WhatsApp message on a phone keyboard.
-  const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  // A 6-digit PIN -- easiest thing to read aloud, dictate over a phone call,
+  // or type on the numeric keyboard that mobile browsers show for a
+  // password field once inputMode is set. Weaker than a mixed-character
+  // password in isolation, but Supabase rate-limits failed sign-in
+  // attempts, and this app has no public signup surface to brute-force
+  // against in the first place.
   let out = "";
-  for (let i = 0; i < 8; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  for (let i = 0; i < 6; i++) out += Math.floor(Math.random() * 10);
   return out;
 }
 
@@ -86,6 +89,11 @@ async function handle(request: Request): Promise<Response> {
   }
 
   const email = emailInput || `${whatsappDigits}@semeando-juntos.app`;
+  // Sellers log in typing just their WhatsApp digits (see login/page.tsx,
+  // which appends this same suffix before calling signInWithPassword) --
+  // show that simpler login, not the synthetic email, when there's no real
+  // email on file.
+  const loginDisplay = emailInput || whatsappDigits;
   const password = generatePassword();
 
   const admin = createAdminClient();
@@ -115,5 +123,5 @@ async function handle(request: Request): Promise<Response> {
     return NextResponse.json({ error: profileError.message }, { status: 400 });
   }
 
-  return NextResponse.json({ ok: true, email, password });
+  return NextResponse.json({ ok: true, login: loginDisplay, password });
 }

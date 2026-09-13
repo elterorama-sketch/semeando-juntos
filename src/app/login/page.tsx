@@ -4,10 +4,25 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+// The seller-facing login is whatever they were handed: usually just their
+// WhatsApp number, sometimes a real email (see /api/admin/invite). Supabase
+// auth always needs an email as the account key, so plain digits get the
+// same synthetic domain appended here that the invite route used to create
+// the account -- the seller never has to know or type that suffix.
+function toEmail(login: string): string {
+  const trimmed = login.trim();
+  const digits = trimmed.replace(/\D/g, "");
+  const looksLikeEmail = trimmed.includes("@");
+  if (!looksLikeEmail && digits.length >= 8) {
+    return `${digits}@semeando-juntos.app`;
+  }
+  return trimmed;
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -17,10 +32,13 @@ function LoginForm() {
     setStatus("loading");
     setErrorMsg("");
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email: toEmail(login),
+      password,
+    });
     if (error) {
       setStatus("error");
-      setErrorMsg("E-mail ou senha incorretos.");
+      setErrorMsg("Login ou senha incorretos.");
       return;
     }
     router.replace(searchParams.get("next") || "/");
@@ -40,26 +58,29 @@ function LoginForm() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="mb-1 block text-sm font-medium text-verde-profundo">
-              E-mail
+            <label htmlFor="login" className="mb-1 block text-sm font-medium text-verde-profundo">
+              WhatsApp
             </label>
             <input
-              id="email"
-              type="email"
+              id="login"
+              type="text"
+              inputMode="tel"
+              placeholder="Ex: 11999998888"
               required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="username"
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
               className="tap-target w-full rounded-xl border border-verde-oliva/30 bg-white px-4 py-3 text-verde-profundo outline-none focus:border-verde-profundo focus:ring-2 focus:ring-verde-profundo/20"
             />
           </div>
           <div>
             <label htmlFor="password" className="mb-1 block text-sm font-medium text-verde-profundo">
-              Senha
+              Senha (código de 6 dígitos)
             </label>
             <input
               id="password"
               type="password"
+              inputMode="numeric"
               required
               autoComplete="current-password"
               value={password}

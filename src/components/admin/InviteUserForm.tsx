@@ -13,7 +13,7 @@ export default function InviteUserForm({ congregations }: { congregations: Congr
   const [role, setRole] = useState<UserRole>("seller");
   const [congregationId, setCongregationId] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [created, setCreated] = useState<{ name: string; email: string; password: string } | null>(
+  const [created, setCreated] = useState<{ name: string; login: string; password: string } | null>(
     null
   );
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
@@ -36,7 +36,7 @@ export default function InviteUserForm({ congregations }: { congregations: Congr
       setError(json.error ?? "Erro ao criar usuário.");
       throw new Error(json.error);
     }
-    setCreated({ name: fullName, email: json.email, password: json.password });
+    setCreated({ name: fullName, login: json.login, password: json.password });
     setFullName("");
     setWhatsapp("");
     setEmail("");
@@ -45,7 +45,7 @@ export default function InviteUserForm({ congregations }: { congregations: Congr
   }
 
   const shareText = created
-    ? `Acesso ao app Semeando Juntos, ${created.name}:\nLogin: ${created.email}\nSenha: ${created.password}`
+    ? `Acesso ao app Semeando Juntos, ${created.name}:\nLogin: ${created.login}\nSenha: ${created.password}`
     : "";
 
   async function handleCopy() {
@@ -64,7 +64,7 @@ export default function InviteUserForm({ congregations }: { congregations: Congr
         </p>
         <div className="rounded-xl bg-creme p-3 text-sm">
           <p>
-            <span className="font-semibold text-verde-profundo">Login:</span> {created.email}
+            <span className="font-semibold text-verde-profundo">Login:</span> {created.login}
           </p>
           <p>
             <span className="font-semibold text-verde-profundo">Senha:</span> {created.password}
