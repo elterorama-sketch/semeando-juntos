@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { formatCentsBRL, formatDate } from "@/lib/format";
+import { useEffect, useMemo, useState } from "react";
 import { generatePromoImage } from "@/lib/promoImage";
-import { formatPhoneBR, waLink, type CampaignLeader } from "@/lib/campaignLeaders";
+import type { CampaignLeader } from "@/lib/campaignLeaders";
+import { PROMO_TEMPLATES, pickPromoTemplate } from "@/lib/promoTemplates";
 
 interface PromoShareButtonProps {
   campaignName: string;
@@ -45,25 +45,20 @@ function PromoPreview({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [state, setState] = useState<"idle" | "generating" | "error">("idle");
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
+  const [templateIndex, setTemplateIndex] = useState(() =>
+    Math.floor(Math.random() * PROMO_TEMPLATES.length)
+  );
 
-  const hasPromo = promoBuyQuantity && promoFreeQuantity;
-  const shareText = [
-    `🌱 ${campaignName.toUpperCase()} 🌱`,
-    "Ajude a igreja e concorra a prêmios!",
-    "",
-    `Número por ${formatCentsBRL(priceCents)}`,
-    hasPromo ? `Promoção: compre ${promoBuyQuantity} ganhe ${promoFreeQuantity}!` : null,
-    "",
-    ...prizes.slice(0, 4).map((p) => `🎁 ${p.position}º prêmio: ${p.title}`),
-    drawDate ? `\n📅 Sorteio em ${formatDate(drawDate)}` : null,
-    "",
-    leaders.length > 0
-      ? "📲 Compre ou reserve seu número direto pelo WhatsApp com um cooperador:"
-      : "👉 Procure um cooperador da sua congregação e garanta já seus números!",
-    ...leaders.map((l) => `• ${l.name} — ${formatPhoneBR(l.phone)} — ${waLink(l.phone)}`),
-  ]
-    .filter((l) => l !== null)
-    .join("\n");
+  const templateCtx = useMemo(
+    () => ({ campaignName, priceCents, drawDate, prizes, promoBuyQuantity, promoFreeQuantity, leaders }),
+    [campaignName, priceCents, drawDate, prizes, promoBuyQuantity, promoFreeQuantity, leaders]
+  );
+  const shareText = pickPromoTemplate(templateCtx, templateIndex);
+
+  function handleNextTemplate() {
+    setTemplateIndex((i) => (i + 1) % PROMO_TEMPLATES.length);
+    setCopyState("idle");
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -151,7 +146,18 @@ function PromoPreview({
           )}
         </div>
 
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 max-h-40 overflow-y-auto whitespace-pre-line rounded-xl bg-creme p-3 text-xs text-verde-profundo">
+          {shareText}
+        </div>
+
+        <div className="mt-3 space-y-2">
+          <button
+            type="button"
+            onClick={handleNextTemplate}
+            className="tap-target w-full rounded-xl border-2 border-verde-oliva/30 py-3 font-semibold uppercase tracking-wide text-verde-oliva hover:bg-creme/60"
+          >
+            <span aria-hidden>🔀</span> Ver outra sugestão
+          </button>
           <button
             type="button"
             onClick={handleShare}

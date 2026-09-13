@@ -1,5 +1,6 @@
 import { formatCentsBRL, formatDate } from "@/lib/format";
 import { formatPhoneBR, type CampaignLeader } from "@/lib/campaignLeaders";
+import { VAROES_CONGRESS } from "@/lib/varoesCongress";
 
 export interface PromoImageData {
   campaignName: string;
@@ -66,8 +67,23 @@ export async function generatePromoImage(data: PromoImageData): Promise<Blob> {
   const LEADERS_CARD_H = leaders.length > 0 ? 90 + leaderRows * 66 + 20 : 130;
   const prizeLines = data.prizes.slice(0, 4);
   const PRIZES_CARD_H = 90 + prizeLines.length * 64 + (data.drawDate ? 70 : 20);
+  const CONGRESS_CARD_H = 150;
   const HEIGHT =
-    100 + 60 + 60 * 2 + 20 + 4 + 50 + 60 + 60 + PRIZES_CARD_H + 60 + 44 + LEADERS_CARD_H + 130;
+    100 +
+    60 +
+    60 * 2 +
+    20 +
+    4 +
+    50 +
+    60 +
+    60 +
+    PRIZES_CARD_H +
+    60 +
+    44 +
+    LEADERS_CARD_H +
+    50 +
+    CONGRESS_CARD_H +
+    130;
 
   const canvas = document.createElement("canvas");
   canvas.width = WIDTH;
@@ -222,6 +238,35 @@ export async function generatePromoImage(data: PromoImageData): Promise<Blob> {
     ctx.font = "700 28px system-ui, sans-serif";
     ctx.fillText("e garanta já seus números!", centerX, ctaY);
   }
+
+  y += LEADERS_CARD_H + 50;
+
+  // Congress info card
+  ctx.fillStyle = "rgba(243,236,221,0.12)";
+  roundedRect(ctx, cardX, y, cardW, CONGRESS_CARD_H, 24);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(181,98,58,0.5)";
+  ctx.lineWidth = 2;
+  roundedRect(ctx, cardX, y, cardW, CONGRESS_CARD_H, 24);
+  ctx.stroke();
+
+  let congY = y + 42;
+  ctx.fillStyle = COLORS.creme;
+  ctx.font = "700 26px system-ui, sans-serif";
+  ctx.fillText("⛪ A arrecadação ajuda os varões a irem ao:", centerX, congY);
+  congY += 36;
+
+  ctx.fillStyle = COLORS.offWhite;
+  ctx.font = "800 28px system-ui, sans-serif";
+  const congressTitleLines = wrapText(ctx, VAROES_CONGRESS.title, cardW - 80);
+  congressTitleLines.forEach((line) => {
+    ctx.fillText(line, centerX, congY);
+    congY += 34;
+  });
+
+  ctx.fillStyle = "rgba(243,236,221,0.85)";
+  ctx.font = "600 24px system-ui, sans-serif";
+  ctx.fillText(VAROES_CONGRESS.dates, centerX, congY);
 
   ctx.fillStyle = "rgba(243,236,221,0.6)";
   ctx.font = "italic 500 26px system-ui, sans-serif";
