@@ -114,8 +114,8 @@ function UserRow({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <div>
-          <p className="font-medium text-verde-profundo">{u.full_name}</p>
+        <div className="min-w-0">
+          <p className="truncate font-medium text-verde-profundo">{u.full_name}</p>
           <p className="text-xs text-verde-oliva">
             {ROLE_LABEL[u.role] ?? u.role}
             {congregationName(u.congregation_id) ? ` · ${congregationName(u.congregation_id)}` : ""}

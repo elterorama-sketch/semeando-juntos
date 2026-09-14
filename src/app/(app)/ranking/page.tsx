@@ -81,20 +81,20 @@ export default async function RankingPage() {
         {ranking.map((s, i) => (
           <div
             key={s.name}
-            className="flex items-center justify-between rounded-xl bg-white p-4 shadow-sm ring-1 ring-verde-oliva/10"
+            className="flex items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-verde-oliva/10"
           >
-            <div className="flex items-center gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-verde-profundo font-bold text-off-white">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-verde-profundo font-bold text-off-white">
                 {i + 1}
               </span>
-              <div>
-                <p className="font-semibold text-verde-profundo">{s.name}</p>
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-verde-profundo">{s.name}</p>
                 <p className="text-xs text-verde-oliva">
                   {s.paidNumbers} pagos · {s.reservedNumbers} reservados
                 </p>
               </div>
             </div>
-            <p className="font-bold text-verde-profundo">{formatCentsBRL(s.paidCents)}</p>
+            <p className="shrink-0 font-bold text-verde-profundo">{formatCentsBRL(s.paidCents)}</p>
           </div>
         ))}
       </main>

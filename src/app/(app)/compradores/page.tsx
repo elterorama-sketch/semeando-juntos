@@ -77,19 +77,19 @@ export default async function CompradoresPage() {
         )}
         {list.map((c) => (
           <div key={c.name + c.whatsapp} className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-verde-oliva/10">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-verde-profundo">{c.name}</p>
-                {c.whatsapp && <p className="text-sm text-verde-oliva">{c.whatsapp}</p>}
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-verde-profundo">{c.name}</p>
+                {c.whatsapp && <p className="truncate text-sm text-verde-oliva">{c.whatsapp}</p>}
                 {c.congregation && (
-                  <p className="text-xs text-verde-oliva/70">{c.congregation}</p>
+                  <p className="truncate text-xs text-verde-oliva/70">{c.congregation}</p>
                 )}
                 <p className="mt-1 text-sm text-verde-oliva">
                   {c.numbers.length} número{c.numbers.length > 1 ? "s" : ""} ·{" "}
                   {c.numbers.map((n) => formatNumber(n)).join(" • ")}
                 </p>
               </div>
-              <div className="text-right">
+              <div className="shrink-0 text-right">
                 <p className="font-semibold text-verde-profundo">{formatCentsBRL(c.totalCents)}</p>
                 <StatusBadge status={c.status} />
               </div>

@@ -68,15 +68,15 @@ export default async function MinhasVendasPage() {
           {list.map((order) => (
             <div
               key={order.id}
-              className="flex items-center justify-between rounded-xl bg-white p-3 shadow-sm ring-1 ring-verde-oliva/10"
+              className="flex items-center justify-between gap-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-verde-oliva/10"
             >
-              <div>
-                <p className="font-semibold text-verde-profundo">
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-verde-profundo">
                   {order.campaign_numbers.map((n) => formatNumber(n.number)).join(" • ")}
                 </p>
-                <p className="text-sm text-verde-oliva">{order.customer?.name ?? "-"}</p>
+                <p className="truncate text-sm text-verde-oliva">{order.customer?.name ?? "-"}</p>
               </div>
-              <div className="text-right">
+              <div className="shrink-0 text-right">
                 <p className="font-semibold text-verde-profundo">{formatCentsBRL(order.total_cents)}</p>
                 <StatusBadge status={order.status as NumberStatus} />
               </div>
