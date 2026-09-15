@@ -21,7 +21,7 @@ const COLORS = {
   verdeOliva: "#5C6B3B",
   creme: "#F3ECDD",
   offWhite: "#FBF9F3",
-  terracota: "#B5623A",
+  terracota: "#9E5533",
 };
 
 const WIDTH = 1080;

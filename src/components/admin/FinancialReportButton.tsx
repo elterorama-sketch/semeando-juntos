@@ -14,7 +14,7 @@ type WithAutoTable = jsPDF & { lastAutoTable: { finalY: number } };
 const BRAND = {
   verdeProfundo: "#1F3D2B",
   verdeOliva: "#5C6B3B",
-  terracota: "#B5623A",
+  terracota: "#9E5533",
   creme: "#F3ECDD",
 };
 
