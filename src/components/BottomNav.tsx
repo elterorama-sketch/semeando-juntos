@@ -30,7 +30,7 @@ export default function BottomNav({ role }: { role: UserRole }) {
                 ? "text-off-white"
                 : isActive
                   ? "text-verde-profundo"
-                  : "text-verde-oliva/60"
+                  : "text-verde-profundo/75"
             }`}
           >
             {item.highlight ? (

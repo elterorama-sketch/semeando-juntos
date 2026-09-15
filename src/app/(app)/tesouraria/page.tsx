@@ -92,7 +92,7 @@ export default async function TesourariaPage() {
                     </p>
                     {(order as unknown as { customer: { congregation: { name: string } | null } | null }).customer
                       ?.congregation && (
-                      <p className="text-xs text-verde-oliva/70">
+                      <p className="text-xs text-verde-profundo/75">
                         {
                           (order as unknown as { customer: { congregation: { name: string } | null } | null })
                             .customer!.congregation!.name
@@ -104,7 +104,7 @@ export default async function TesourariaPage() {
                         .map((n) => formatNumber(n.number))
                         .join(" • ")}
                     </p>
-                    <p className="text-xs text-verde-oliva/70">
+                    <p className="text-xs text-verde-profundo/75">
                       Cooperador:{" "}
                       {(order as unknown as { seller: { full_name: string } | null }).seller?.full_name ?? "-"}
                     </p>

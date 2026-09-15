@@ -104,7 +104,7 @@ function LoginForm() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-verde-oliva/70">
+        <p className="mt-6 text-center text-xs text-verde-profundo/75">
           Não tem acesso? Peça a um administrador para te cadastrar.
         </p>
       </div>

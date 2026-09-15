@@ -49,7 +49,7 @@ export default async function RelatoriosPage() {
           </p>
           <ExportCsvButton campaignId={campaign.id} />
         </div>
-        <p className="text-xs text-verde-oliva/70">
+        <p className="text-xs text-verde-profundo/75">
           Consulte também Ranking (vendas por cooperador) e Tesouraria (pendências e arrecadação).
         </p>
       </main>

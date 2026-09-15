@@ -82,7 +82,7 @@ export default async function CompradoresPage() {
                 <p className="truncate font-semibold text-verde-profundo">{c.name}</p>
                 {c.whatsapp && <p className="truncate text-sm text-verde-oliva">{c.whatsapp}</p>}
                 {c.congregation && (
-                  <p className="truncate text-xs text-verde-oliva/70">{c.congregation}</p>
+                  <p className="truncate text-xs text-verde-profundo/75">{c.congregation}</p>
                 )}
                 <p className="mt-1 text-sm text-verde-oliva">
                   {c.numbers.length} número{c.numbers.length > 1 ? "s" : ""} ·{" "}
