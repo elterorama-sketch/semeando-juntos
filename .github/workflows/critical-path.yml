@@ -1,0 +1,33 @@
+name: Teste do caminho crítico
+
+# Roda reservar -> vender -> confirmar pagamento -> liberar sozinho a
+# cada push/PR pro main, pegando bugs como o do order_numbers antes que
+# um cooperador veja o erro em produção (item 3 do plano "Como evitar
+# erros no sistema"). Precisa de 3 secrets no repositório para rodar de
+# verdade (Settings -> Secrets and variables -> Actions):
+#   NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
+#   SUPABASE_SERVICE_ROLE_KEY -- sem eles o job falha na checagem inicial
+#   do próprio script, com uma mensagem clara.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  critical-path:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run test:critical-path
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
