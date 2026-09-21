@@ -23,7 +23,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # @supabase/supabase-js 2.116 usa o WebSocket nativo do Node
+          # (RealtimeClient) e exige Node >=22 -- Node 20 quebra na hora de
+          # criar o client com "Node.js detected but native WebSocket not
+          # found". O resto do projeto roda em Node 20 sem problema; só
+          # este script (que depende do supabase-js mais novo) precisa do 22.
+          node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run test:critical-path
