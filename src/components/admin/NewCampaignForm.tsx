@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { reportUnexpectedRpcError } from "@/lib/reportError";
 import ActionButton from "@/components/ActionButton";
 
 export default function NewCampaignForm() {
@@ -37,6 +38,9 @@ export default function NewCampaignForm() {
       p_campaign_id: campaign.id,
     });
     if (genError) {
+      reportUnexpectedRpcError(supabase, "generate_campaign_numbers", genError.message, {
+        campaignId: campaign.id,
+      });
       setError("Campanha criada, mas houve erro ao gerar os números.");
       throw genError;
     }

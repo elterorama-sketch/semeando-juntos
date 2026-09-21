@@ -5,6 +5,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatCentsBRL } from "@/lib/format";
 import { uploadPaymentReceipt } from "@/lib/receiptUpload";
+import { reportUnexpectedRpcError } from "@/lib/reportError";
 import ActionButton from "@/components/ActionButton";
 import type { PaymentMethod } from "@/lib/database.types";
 
@@ -42,6 +43,10 @@ export default function ConfirmPaymentButton({
       p_receipt_path: receiptPath,
     });
     if (rpcError) {
+      reportUnexpectedRpcError(supabase, "confirm_payment_button", rpcError.message, {
+        orderId,
+        method,
+      });
       setError("Erro ao confirmar. Tente novamente.");
       throw rpcError;
     }

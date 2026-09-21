@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatCentsBRL, formatNumber } from "@/lib/format";
 import ActionButton from "@/components/ActionButton";
 import { PIX_COPIA_COLA, PIX_PAYMENT_LINK } from "@/lib/pix";
+import { reportUnexpectedRpcError } from "@/lib/reportError";
 import type { Congregation, PaymentMethod } from "@/lib/database.types";
 
 interface SellDrawerProps {
@@ -122,6 +123,10 @@ export default function SellDrawer({
     });
 
     if (rpcError) {
+      reportUnexpectedRpcError(supabase, "reserve_numbers", rpcError.message, {
+        campaignId,
+        numbers: sorted,
+      });
       const friendly = translateError(rpcError.message);
       setError(friendly);
       throw rpcError;
@@ -141,6 +146,11 @@ export default function SellDrawer({
         p_amount_cents: totalCents,
         p_method: paymentMethod,
       });
+      if (confirmError) {
+        reportUnexpectedRpcError(supabase, "confirm_payment_vender_agora", confirmError.message, {
+          orderId,
+        });
+      }
       paid = !confirmError;
     }
 

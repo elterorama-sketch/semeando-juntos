@@ -14,6 +14,7 @@ const ITEMS: { href: string; label: string; icon: string; roles: UserRole[] }[] 
   { href: "/relatorios", label: "Relatórios", icon: "📊", roles: ["admin"] },
   { href: "/sorteio", label: "Sorteio", icon: "🎁", roles: ["admin"] },
   { href: "/auditoria", label: "Auditoria", icon: "📜", roles: ["admin"] },
+  { href: "/suporte", label: "Suporte", icon: "🛟", roles: ["admin"] },
   { href: "/configuracoes", label: "Configurações", icon: "⚙️", roles: ["admin"] },
 ];
 

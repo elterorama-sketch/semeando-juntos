@@ -150,6 +150,29 @@ export interface DrawResult {
   created_at: string;
 }
 
+export interface SystemErrorReport {
+  id: string;
+  actor_id: string | null;
+  source: string;
+  message: string;
+  context: Record<string, unknown> | null;
+  resolved: boolean;
+  resolved_by: string | null;
+  resolved_at: string | null;
+  created_at: string;
+}
+
+export interface BugReport {
+  id: string;
+  reporter_id: string | null;
+  screen: string | null;
+  message: string;
+  status: "aberto" | "resolvido";
+  resolved_by: string | null;
+  resolved_at: string | null;
+  created_at: string;
+}
+
 export interface ReserveNumbersResult {
   order_id: string;
   total_cents: number;
@@ -201,6 +224,8 @@ export interface Database {
       audit_logs: TableDef<AuditLog>;
       draws: TableDef<Draw>;
       draw_results: TableDef<DrawResult>;
+      system_error_reports: TableDef<SystemErrorReport>;
+      bug_reports: TableDef<BugReport>;
     };
     Views: { [_ in never]: never };
     Functions: {
@@ -232,6 +257,13 @@ export interface Database {
       };
       generate_campaign_numbers: { Args: { p_campaign_id: string }; Returns: undefined };
       expire_stale_reservations: { Args: { [_ in never]: never }; Returns: number };
+      report_client_error: {
+        Args: { p_source: string; p_message: string; p_context?: Record<string, unknown> | null };
+        Returns: undefined;
+      };
+      report_bug: { Args: { p_screen: string | null; p_message: string }; Returns: undefined };
+      resolve_bug_report: { Args: { p_id: string }; Returns: undefined };
+      resolve_system_error: { Args: { p_id: string }; Returns: undefined };
     };
     Enums: {
       user_role: UserRole;

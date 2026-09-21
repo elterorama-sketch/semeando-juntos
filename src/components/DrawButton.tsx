@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatNumber } from "@/lib/format";
+import { reportUnexpectedRpcError } from "@/lib/reportError";
 import ActionButton from "@/components/ActionButton";
 
 export default function DrawButton({
@@ -28,6 +29,7 @@ export default function DrawButton({
       p_prize_id: prizeId,
     });
     if (rpcError) {
+      reportUnexpectedRpcError(supabase, "execute_draw", rpcError.message, { campaignId, prizeId });
       setError(
         rpcError.message.includes("SEM_NUMEROS_ELEGIVEIS")
           ? "Nenhum número pago disponível para sorteio."

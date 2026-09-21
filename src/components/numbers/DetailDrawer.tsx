@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatCentsBRL, formatDateTime, formatNumber } from "@/lib/format";
 import { uploadPaymentReceipt, getReceiptSignedUrl } from "@/lib/receiptUpload";
+import { reportUnexpectedRpcError } from "@/lib/reportError";
 import ActionButton from "@/components/ActionButton";
 import type { NumberStatus, PaymentMethod, Profile } from "@/lib/database.types";
 
@@ -88,6 +89,7 @@ export default function DetailDrawer({
     const supabase = createClient();
     const { error: rpcError } = await supabase.rpc("release_order", { p_order_id: order.id });
     if (rpcError) {
+      reportUnexpectedRpcError(supabase, "release_order", rpcError.message, { orderId: order.id });
       setError("Erro ao liberar o número. Tente novamente.");
       throw rpcError;
     }
@@ -253,6 +255,10 @@ function PaymentModal({
       p_receipt_path: receiptPath,
     });
     if (rpcError) {
+      reportUnexpectedRpcError(supabase, "confirm_payment_detail_drawer", rpcError.message, {
+        orderId,
+        method,
+      });
       setError(
         rpcError.message.includes("PAGAMENTO_DUPLICADO")
           ? "Este pedido já foi confirmado como pago."

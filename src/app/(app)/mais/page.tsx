@@ -15,6 +15,7 @@ export default async function MaisPage() {
     { href: "/relatorios", label: "Relatórios", icon: "📊", roles: ["admin"] },
     { href: "/sorteio", label: "Sorteio", icon: "🎁", roles: ["admin"] },
     { href: "/auditoria", label: "Auditoria", icon: "📜", roles: ["admin"] },
+    { href: "/suporte", label: "Suporte", icon: "🛟", roles: ["admin"] },
     { href: "/configuracoes", label: "Configurações", icon: "⚙️", roles: ["admin"] },
     { href: "/senha", label: "Alterar senha", icon: "🔑", roles: ["admin", "treasurer", "seller"] },
   ].filter((item) => item.roles.includes(role));
