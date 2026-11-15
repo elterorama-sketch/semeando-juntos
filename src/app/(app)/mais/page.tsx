@@ -9,7 +9,7 @@ export default async function MaisPage() {
   const role = profile?.role ?? "seller";
 
   const items = [
-    { href: "/compradores", label: "Compradores", icon: "👤", roles: ["admin", "treasurer", "seller"] },
+    { href: "/compradores", label: "Vendas", icon: "👤", roles: ["admin", "treasurer", "seller"] },
     { href: "/tesouraria", label: "Tesouraria", icon: "💰", roles: ["admin", "treasurer"] },
     { href: "/ranking", label: "Ranking de cooperadores", icon: "🏆", roles: ["admin", "treasurer"] },
     { href: "/relatorios", label: "Relatórios", icon: "📊", roles: ["admin"] },

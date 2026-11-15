@@ -7,8 +7,7 @@ import type { UserRole } from "@/lib/database.types";
 const ITEMS: { href: string; label: string; icon: string; roles: UserRole[] }[] = [
   { href: "/", label: "Início", icon: "🏠", roles: ["admin", "treasurer", "seller"] },
   { href: "/numeros", label: "Números", icon: "🔢", roles: ["admin", "treasurer", "seller"] },
-  { href: "/minhas-vendas", label: "Minhas vendas", icon: "🧾", roles: ["admin", "seller"] },
-  { href: "/compradores", label: "Compradores", icon: "👤", roles: ["admin", "treasurer", "seller"] },
+  { href: "/compradores", label: "Vendas", icon: "🧾", roles: ["admin", "treasurer", "seller"] },
   { href: "/tesouraria", label: "Tesouraria", icon: "💰", roles: ["admin", "treasurer"] },
   { href: "/ranking", label: "Ranking", icon: "🏆", roles: ["admin", "treasurer"] },
   { href: "/relatorios", label: "Relatórios", icon: "📊", roles: ["admin"] },

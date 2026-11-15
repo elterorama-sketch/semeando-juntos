@@ -19,37 +19,38 @@ export default async function RelatoriosPage() {
   }
 
   const campaign = await getActiveCampaign();
-  if (!campaign) {
-    return (
-      <>
-        <TopBar title="Relatórios" />
-        <div className="p-6 text-center text-verde-oliva">Nenhuma campanha ativa.</div>
-      </>
-    );
-  }
 
   return (
     <>
       <TopBar title="Relatórios" />
       <main className="flex-1 space-y-4 p-4 md:p-6">
-        <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-verde-oliva/10">
-          <h3 className="mb-2 font-semibold text-verde-profundo">Relatório contábil-financeiro (PDF)</h3>
-          <p className="mb-3 text-sm text-verde-oliva">
-            Gera um PDF completo com resumo financeiro, gráficos (arrecadação por forma de pagamento e
-            números por status), ranking por cooperador e por congregação, e o extrato completo de
-            pedidos desta campanha.
-          </p>
-          <FinancialReportButton campaign={campaign} />
-        </div>
+        {campaign ? (
+          <>
+            <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-verde-oliva/10">
+              <h3 className="mb-2 font-semibold text-verde-profundo">Relatório contábil-financeiro (PDF)</h3>
+              <p className="mb-3 text-sm text-verde-oliva">
+                Gera um PDF completo com resumo financeiro, gráficos (arrecadação por forma de pagamento
+                e números por status), ranking por cooperador e por congregação, e o extrato completo de
+                pedidos desta campanha.
+              </p>
+              <FinancialReportButton campaign={campaign} />
+            </div>
 
-        <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-verde-oliva/10">
-          <h3 className="mb-2 font-semibold text-verde-profundo">Exportar vendas (CSV)</h3>
-          <p className="mb-3 text-sm text-verde-oliva">
-            Gera um CSV com todos os pedidos (reservados, pendentes e pagos) desta campanha: números,
-            comprador, cooperador, status, valor e data.
-          </p>
-          <ExportCsvButton campaignId={campaign.id} />
-        </div>
+            <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-verde-oliva/10">
+              <h3 className="mb-2 font-semibold text-verde-profundo">Exportar vendas (CSV)</h3>
+              <p className="mb-3 text-sm text-verde-oliva">
+                Gera um CSV com todos os pedidos (reservados, pendentes e pagos) desta campanha: números,
+                comprador, cooperador, status, valor e data.
+              </p>
+              <ExportCsvButton campaignId={campaign.id} />
+            </div>
+          </>
+        ) : (
+          <div className="rounded-xl bg-white p-4 text-center text-sm text-verde-oliva ring-1 ring-verde-oliva/10">
+            Nenhuma campanha ativa -- o PDF contábil e o CSV de vendas precisam de uma campanha. Os
+            relatórios abaixo cobrem todo o histórico e funcionam de qualquer jeito.
+          </div>
+        )}
 
         <Link
           href="/relatorios/cancelamentos"
@@ -59,6 +60,21 @@ export default async function RelatoriosPage() {
             <h3 className="font-semibold text-verde-profundo">Cancelamentos</h3>
             <p className="mt-1 text-sm text-verde-oliva">
               Reservas e vendas canceladas: quem cancelou, quando e por quê.
+            </p>
+          </div>
+          <span aria-hidden className="text-xl text-verde-oliva">
+            →
+          </span>
+        </Link>
+
+        <Link
+          href="/relatorios/pendentes"
+          className="tap-target flex items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-verde-oliva/10"
+        >
+          <div>
+            <h3 className="font-semibold text-verde-profundo">Reservas pendentes (todo o período)</h3>
+            <p className="mt-1 text-sm text-verde-oliva">
+              Números reservados e não pagos em qualquer campanha, de qualquer data -- não só a de hoje.
             </p>
           </div>
           <span aria-hidden className="text-xl text-verde-oliva">

@@ -8,7 +8,7 @@ const ITEMS = [
   { href: "/", label: "Início", icon: "🏠", roles: ["admin", "treasurer", "seller"] as UserRole[] },
   { href: "/numeros", label: "Números", icon: "🔢", roles: ["admin", "treasurer", "seller"] as UserRole[] },
   { href: "/numeros?vender=1", label: "Vender", icon: "➕", roles: ["admin", "seller"] as UserRole[], highlight: true },
-  { href: "/minhas-vendas", label: "Minhas vendas", icon: "🧾", roles: ["admin", "seller"] as UserRole[] },
+  { href: "/compradores", label: "Vendas", icon: "🧾", roles: ["admin", "seller"] as UserRole[] },
   { href: "/mais", label: "Mais", icon: "⋯", roles: ["admin", "treasurer", "seller"] as UserRole[] },
 ];
 
