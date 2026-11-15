@@ -43,6 +43,7 @@ if (!url || !anonKey || !serviceKey) {
 const admin = createClient(url, serviceKey);
 
 const TEST_SELLER_EMAIL = "teste-automatizado@semeando-juntos.app";
+const TEST_ADMIN_EMAIL = "teste-automatizado-admin@semeando-juntos.app";
 const TEST_CUSTOMER_PREFIX = "__TESTE_AUTOMATIZADO__";
 
 let passed = 0;
@@ -128,6 +129,35 @@ async function ensureTestSeller(): Promise<{ userId: string; password: string }>
   return { userId: created.user.id, password };
 }
 
+async function ensureTestAdmin(): Promise<{ userId: string; password: string }> {
+  const password = crypto.randomBytes(9).toString("base64url");
+
+  const { data: usersPage } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
+  const existing = usersPage?.users.find((u) => u.email === TEST_ADMIN_EMAIL);
+
+  if (existing) {
+    const { error } = await admin.auth.admin.updateUserById(existing.id, { password });
+    if (error) throw error;
+    return { userId: existing.id, password };
+  }
+
+  const { data: created, error } = await admin.auth.admin.createUser({
+    email: TEST_ADMIN_EMAIL,
+    password,
+    email_confirm: true,
+  });
+  if (error || !created.user) throw error ?? new Error("Falha ao criar admin de teste");
+
+  await admin.from("profiles").insert({
+    id: created.user.id,
+    full_name: "Admin de Teste (automatizado)",
+    role: "admin",
+    active: true,
+  });
+
+  return { userId: created.user.id, password };
+}
+
 // Tenta reservar o primeiro número livre da lista de candidatos; se outra
 // pessoa acabou de pegar exatamente esse número (NUMERO_INDISPONIVEL),
 // tenta o próximo -- não deveria acontecer quase nunca, mas o teste não
@@ -195,18 +225,30 @@ async function main() {
   console.log("Teste do caminho crítico: reservar → vender → confirmar → liberar\n");
 
   const { campaignId, candidates } = await getActiveCampaignWithSpareNumbers();
-  const { password } = await ensureTestSeller();
+  const { password: sellerPassword } = await ensureTestSeller();
+  const { password: adminPassword } = await ensureTestAdmin();
 
   const seller: SupabaseClient = createClient(url!, anonKey!);
   const { error: signInError } = await seller.auth.signInWithPassword({
     email: TEST_SELLER_EMAIL,
-    password,
+    password: sellerPassword,
   });
   if (signInError) {
     fail("Login do vendedor de teste", signInError);
     process.exit(1);
   }
   ok("Login do vendedor de teste");
+
+  const adminClient: SupabaseClient = createClient(url!, anonKey!);
+  const { error: adminSignInError } = await adminClient.auth.signInWithPassword({
+    email: TEST_ADMIN_EMAIL,
+    password: adminPassword,
+  });
+  if (adminSignInError) {
+    fail("Login do admin de teste", adminSignInError);
+    process.exit(1);
+  }
+  ok("Login do admin de teste");
 
   let numberA: number | undefined;
   let orderIdA: string | undefined;
@@ -267,6 +309,60 @@ async function main() {
     });
     if (!error || !error.message.includes("PAGAMENTO_DUPLICADO")) {
       throw new Error("deveria ter rejeitado com PAGAMENTO_DUPLICADO");
+    }
+  });
+
+  // "Cancelar compra, retornando os números" -- vendedor não pode cancelar
+  // uma venda já paga, só admin/tesoureiro (release_order() bloqueia isso).
+  await assert("Vendedor não pode cancelar compra já paga", async () => {
+    if (!orderIdB) throw new Error("sem order_id da etapa anterior");
+    const { error } = await seller.rpc("release_order", { p_order_id: orderIdB, p_reason: "tentativa indevida" });
+    if (!error || !error.message.includes("PERMISSAO_NEGADA")) {
+      throw new Error("deveria ter rejeitado com PERMISSAO_NEGADA");
+    }
+  });
+
+  await assert("Admin cancela a compra paga com motivo, número volta a ficar disponível", async () => {
+    if (!orderIdB || !numberA) throw new Error("sem order_id da etapa anterior");
+    const { error } = await adminClient.rpc("release_order", {
+      p_order_id: orderIdB,
+      p_reason: "__TESTE_AUTOMATIZADO__ comprador desistiu",
+    });
+    if (error) throw error;
+
+    const secondNumber = candidates.filter((n) => n !== numberA)[0];
+    const { data: numberRow } = await admin
+      .from("campaign_numbers")
+      .select("status")
+      .eq("campaign_id", campaignId)
+      .eq("order_id", orderIdB)
+      .maybeSingle();
+    // Depois do release, a linha não fica mais presa a esse order_id --
+    // confirma pelo número em si.
+    const { data: byNumber } = await admin
+      .from("campaign_numbers")
+      .select("status, order_id")
+      .eq("campaign_id", campaignId)
+      .eq("number", secondNumber)
+      .single();
+    if (numberRow) throw new Error("ainda havia um número preso a esse order_id depois do release");
+    if (byNumber?.status !== "DISPONIVEL" || byNumber?.order_id !== null) {
+      throw new Error(`esperado DISPONIVEL/sem order_id, veio ${JSON.stringify(byNumber)}`);
+    }
+
+    const { data: log } = await admin
+      .from("audit_logs")
+      .select("old_value, new_value")
+      .eq("entity_type", "order")
+      .eq("entity_id", orderIdB)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const oldValue = log?.old_value as { status?: string } | null;
+    const newValue = log?.new_value as { status?: string; motivo?: string } | null;
+    if (oldValue?.status !== "PAGO") throw new Error("audit_logs não registrou que o pedido estava PAGO");
+    if (!newValue?.motivo?.includes("comprador desistiu")) {
+      throw new Error("audit_logs não registrou o motivo do cancelamento");
     }
   });
 

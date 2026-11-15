@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getActiveCampaign, getCurrentProfile } from "@/lib/session";
 import TopBar from "@/components/TopBar";
 import NoPermission from "@/components/NoPermission";
@@ -49,6 +50,22 @@ export default async function RelatoriosPage() {
           </p>
           <ExportCsvButton campaignId={campaign.id} />
         </div>
+
+        <Link
+          href="/relatorios/cancelamentos"
+          className="tap-target flex items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-verde-oliva/10"
+        >
+          <div>
+            <h3 className="font-semibold text-verde-profundo">Cancelamentos</h3>
+            <p className="mt-1 text-sm text-verde-oliva">
+              Reservas e vendas canceladas: quem cancelou, quando e por quê.
+            </p>
+          </div>
+          <span aria-hidden className="text-xl text-verde-oliva">
+            →
+          </span>
+        </Link>
+
         <p className="text-xs text-verde-profundo/75">
           Consulte também Ranking (vendas por cooperador) e Tesouraria (pendências e arrecadação).
         </p>

@@ -250,7 +250,10 @@ export interface Database {
         };
         Returns: undefined;
       };
-      release_order: { Args: { p_order_id: string }; Returns: undefined };
+      release_order: {
+        Args: { p_order_id: string; p_reason?: string | null };
+        Returns: undefined;
+      };
       execute_draw: {
         Args: { p_campaign_id: string; p_prize_id: string };
         Returns: ExecuteDrawResult[];

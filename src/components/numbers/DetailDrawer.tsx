@@ -52,6 +52,7 @@ export default function DetailDrawer({
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [showPayment, setShowPayment] = useState(false);
+  const [showCancelPurchase, setShowCancelPurchase] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -83,11 +84,14 @@ export default function DetailDrawer({
       profile.role === "treasurer" ||
       (profile.role === "seller" && status !== "PAGO"));
 
-  async function handleRelease() {
+  async function handleRelease(reason?: string) {
     setError(null);
     if (!order) return;
     const supabase = createClient();
-    const { error: rpcError } = await supabase.rpc("release_order", { p_order_id: order.id });
+    const { error: rpcError } = await supabase.rpc("release_order", {
+      p_order_id: order.id,
+      p_reason: reason?.trim() || null,
+    });
     if (rpcError) {
       reportUnexpectedRpcError(supabase, "release_order", rpcError.message, { orderId: order.id });
       setError("Erro ao liberar o número. Tente novamente.");
@@ -179,13 +183,22 @@ export default function DetailDrawer({
               Confirmar pagamento
             </button>
           )}
-          {canRelease && order && (
+          {canRelease && order && status === "PAGO" && (
+            <button
+              type="button"
+              onClick={() => setShowCancelPurchase(true)}
+              className="tap-target w-full rounded-xl bg-terracota py-3 font-semibold uppercase tracking-wide text-off-white hover:bg-terracota/90"
+            >
+              Cancelar compra
+            </button>
+          )}
+          {canRelease && order && status !== "PAGO" && (
             <ActionButton
-              label={status === "PAGO" ? "Liberar número pago" : "Liberar número"}
+              label="Liberar número"
               labelDoing="Liberando..."
               labelDone="Liberado ✓"
               variant="danger"
-              onAction={handleRelease}
+              onAction={() => handleRelease()}
             />
           )}
         </div>
@@ -210,6 +223,78 @@ export default function DetailDrawer({
             }}
           />
         )}
+
+        {showCancelPurchase && order && (
+          <CancelPurchaseModal
+            customerName={order.customer?.name ?? "Comprador não disponível"}
+            numbers={[numberValue]}
+            totalCents={order.total_cents}
+            onClose={() => setShowCancelPurchase(false)}
+            onConfirm={(reason) => handleRelease(reason)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CancelPurchaseModal({
+  customerName,
+  numbers,
+  totalCents,
+  onClose,
+  onConfirm,
+}: {
+  customerName: string;
+  numbers: number[];
+  totalCents: number;
+  onClose: () => void;
+  onConfirm: (reason: string) => Promise<void>;
+}) {
+  const [reason, setReason] = useState("");
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 md:items-center">
+      <div className="w-full max-w-sm rounded-t-2xl bg-off-white p-5 md:rounded-2xl">
+        <h3 className="text-lg font-bold text-verde-profundo">Cancelar esta compra?</h3>
+        <p className="mt-2 text-sm text-verde-oliva">
+          O pagamento já havia sido confirmado. Cancelar devolve{" "}
+          {numbers.length === 1 ? "o número" : "os números"}{" "}
+          <span className="font-semibold text-verde-profundo">
+            {numbers.map((n) => formatNumber(n)).join(" • ")}
+          </span>{" "}
+          para disponível e desfaz a venda de {formatCentsBRL(totalCents)} de{" "}
+          <span className="font-semibold text-verde-profundo">{customerName}</span>. Isso fica
+          registrado no relatório de cancelamentos.
+        </p>
+
+        <label className="mt-3 block">
+          <span className="mb-1 block text-sm text-verde-oliva">Motivo (opcional)</span>
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            rows={3}
+            placeholder="Ex: comprador desistiu, pagamento estornado, erro no registro..."
+            className="tap-target w-full rounded-xl border border-verde-oliva/30 px-3 py-2 text-sm outline-none focus:border-verde-profundo"
+          />
+        </label>
+
+        <div className="mt-4 space-y-2">
+          <ActionButton
+            label="Cancelar compra"
+            labelDoing="Cancelando..."
+            labelDone="Cancelado ✓"
+            variant="danger"
+            onAction={() => onConfirm(reason)}
+          />
+          <button
+            type="button"
+            onClick={onClose}
+            className="tap-target w-full rounded-xl py-3 font-semibold uppercase tracking-wide text-verde-oliva hover:bg-creme/40"
+          >
+            Voltar
+          </button>
+        </div>
       </div>
     </div>
   );
